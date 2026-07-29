@@ -1,0 +1,26 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  Excel-driven suite. Executes tests.datadriven.ExcelDrivenTest, which reads EVERY sheet of the
+  QA manual workbook (src/test/resources/manual-testcases.xlsx by default; override with
+  -Dexcel.file=...), maps each sheet to its module, and runs the auto-mappable read-only scenarios
+  (Search / Sort / ColumnFilter / View) for User, Team and Department. Login-module and
+  destructive/complex/manual rows are reported as Skipped with a reason.
+
+  Run with:  mvn test -DsuiteXmlFile=testng-excel.xml
+  Optional overrides for live lookup terms:
+    -Dexcel.user.search=Mayank -Dexcel.team.search=Sales -Dexcel.department.search="Sales Engineers"
+-->
+<suite name="Visdum Excel-Driven Suite" data-provider-thread-count="3">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Excel-Driven Execution">
+        <classes>
+            <class name="tests.datadriven.ExcelDrivenTest"/>
+        </classes>
+    </test>
+
+</suite>

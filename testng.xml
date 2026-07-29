@@ -1,0 +1,82 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!-- parallel="classes": read-only test classes run 3 at a time (each thread gets its own
+     ThreadLocal driver). Destructive tests skip by default, so the standard run is safe to
+     parallelise. For a destructive run (-Drun.destructive.tests=true) set thread-count to 1
+     to avoid concurrent mutations of shared UAT data under a single login account. -->
+<suite name="Visdum Suite" parallel="classes" thread-count="3">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Login Test">
+
+        <classes>
+
+            <class name="tests.login.LoginValidationTest"/>
+            <class name="tests.login.InvalidCredentialsTest"/>
+            <class name="tests.login.ValidLoginTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Employees Test">
+
+        <classes>
+
+            <class name="tests.employees.SearchUserTest"/>
+            <class name="tests.employees.UserValidationTest"/>
+            <class name="tests.employees.SortUserTest"/>
+            <class name="tests.employees.FilterUserTest"/>
+            <class name="tests.employees.ColumnFilterUserTest"/>
+            <class name="tests.employees.ViewUserTest"/>
+            <class name="tests.employees.CreateUserTest"/>
+            <class name="tests.employees.EditUserTest"/>
+            <class name="tests.employees.ChangeUserPasswordTest"/>
+            <class name="tests.employees.DeactivateUserTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Teams Test">
+
+        <classes>
+
+            <class name="tests.teams.SearchTeamTest"/>
+            <class name="tests.teams.TeamValidationTest"/>
+            <class name="tests.teams.SortTeamTest"/>
+            <class name="tests.teams.ColumnFilterTeamTest"/>
+            <class name="tests.teams.CreateTeamTest"/>
+            <class name="tests.teams.EditTeamTest"/>
+            <class name="tests.teams.AddTeamMembersTest"/>
+            <class name="tests.teams.DeactivateTeamTest"/>
+            <class name="tests.teams.ActivateTeamTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Departments Test">
+
+        <classes>
+
+            <class name="tests.departments.SearchDepartmentTest"/>
+            <class name="tests.departments.DepartmentValidationTest"/>
+            <class name="tests.departments.SortDepartmentTest"/>
+            <class name="tests.departments.ColumnFilterDepartmentTest"/>
+            <class name="tests.departments.ViewDepartmentTest"/>
+            <class name="tests.departments.CreateDepartmentTest"/>
+            <class name="tests.departments.EditDepartmentTest"/>
+            <class name="tests.departments.DuplicateDepartmentTest"/>
+            <class name="tests.departments.AddDepartmentMembersTest"/>
+            <class name="tests.departments.DeactivateDepartmentTest"/>
+            <class name="tests.departments.ActivateDepartmentTest"/>
+
+        </classes>
+
+    </test>
+
+</suite>

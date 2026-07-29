@@ -1,0 +1,24 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+  Data-driven suite. Executes tests.datadriven.DataDrivenTest, which reads the external control
+  file (src/test/resources/datadriven-testcases.csv by default, override with -Dtestcase.file=...)
+  and runs ONLY rows marked Run=Yes.
+
+  Run with:  mvn test -DsuiteXmlFile=testng-datadriven.xml
+  The data-provider rows execute in parallel (data-provider-thread-count), each on its own
+  ThreadLocal driver. Lower the thread count on constrained machines.
+-->
+<suite name="Visdum Data-Driven Suite" data-provider-thread-count="3">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Data-Driven Execution">
+        <classes>
+            <class name="tests.datadriven.DataDrivenTest"/>
+        </classes>
+    </test>
+
+</suite>
