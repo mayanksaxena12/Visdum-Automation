@@ -1,10 +1,10 @@
 package listeners;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+// import java.io.ByteArrayInputStream;
+// import java.io.File;
+// import java.nio.file.Files;
+// import java.nio.file.Path;
+// import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -53,26 +53,24 @@ public class ExtentReportListener implements ITestListener {
 
     @Override
     public void onTestStart(ITestResult result) {
-        ExtentTest test = extent.createTest(
-                result.getMethod().getQualifiedName(), result.getMethod().getDescription());
-        testMap.put(Thread.currentThread().getId(), test);
+        testMap.put(Thread.currentThread().getId(), createTest(result));
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        currentTest().log(Status.PASS, "Test passed.");
+        currentTest(result).log(Status.PASS, "Test passed.");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        ExtentTest test = currentTest();
+        ExtentTest test = currentTest(result);
         test.log(Status.FAIL, result.getThrowable());
         attachScreenshot(test);
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        currentTest().log(Status.SKIP, result.getThrowable() != null
+        currentTest(result).log(Status.SKIP, result.getThrowable() != null
                 ? result.getThrowable().getMessage()
                 : "Test skipped.");
     }
@@ -82,8 +80,20 @@ public class ExtentReportListener implements ITestListener {
         extent.flush();
     }
 
-    private ExtentTest currentTest() {
-        return testMap.get(Thread.currentThread().getId());
+    /**
+     * Returns the current thread's ExtentTest, creating it on demand. This matters for tests that
+     * are skipped/failed because of a configuration method (e.g. a {@code @BeforeMethod} throwing
+     * {@code SkipException} in the destructive-test guard): TestNG fires {@code onTestSkipped}
+     * without ever calling {@code onTestStart}, so without this fallback {@code currentTest()} would
+     * return null and NPE inside the handlers.
+     */
+    private ExtentTest currentTest(ITestResult result) {
+        return testMap.computeIfAbsent(Thread.currentThread().getId(), id -> createTest(result));
+    }
+ 
+    private ExtentTest createTest(ITestResult result) {
+        return extent.createTest(
+                result.getMethod().getQualifiedName(), result.getMethod().getDescription());
     }
 
     private void attachScreenshot(ExtentTest test) {

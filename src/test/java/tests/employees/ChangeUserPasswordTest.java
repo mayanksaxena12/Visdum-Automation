@@ -2,8 +2,10 @@ package tests.employees;
 
 import Base.BaseTest;
 import Base.DriverFactory;
+import Pages.ChangePasswordModal;
 import Pages.UsersPage;
-import org.openqa.selenium.By;
+// import org.openqa.selenium.By;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import utilities.ExecutionGuard;
@@ -23,10 +25,17 @@ public class ChangeUserPasswordTest extends BaseTest {
         }
         String password = System.getProperty("test.user.password", "Test@1234");
         UsersPage users = new UsersPage(DriverFactory.getDriver());
+        ChangePasswordModal modal = new ChangePasswordModal(DriverFactory.getDriver());     
+
         users.search(user);
         users.openChangePassword(user);
-        DriverFactory.getDriver().findElement(By.name("new_password")).sendKeys(password);
-        DriverFactory.getDriver().findElement(By.name("confirm_password")).sendKeys(password);
-        DriverFactory.getDriver().findElement(By.xpath("//button[normalize-space()='Update']")).click();
+        // DriverFactory.getDriver().findElement(By.name("new_password")).sendKeys(password);
+        // DriverFactory.getDriver().findElement(By.name("confirm_password")).sendKeys(password);
+        // DriverFactory.getDriver().findElement(By.xpath("//button[normalize-space()='Update']")).click();
+        modal.setPassword(password);
+        modal.update();
+ 
+        Assert.assertTrue(modal.isClosed(),
+                "Expected the change-password modal to close after a successful update.");
     }
 }

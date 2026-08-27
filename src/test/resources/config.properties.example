@@ -1,0 +1,13 @@
+# Copy this file to config.properties and fill in your own values.
+# config.properties is gitignored so real credentials are never committed.
+url=https://uat.visdum.com
+username=your.uat.user@example.com
+password=YourPassword123
+ 
+# --- MySQL DB (for 2FA OTP fetch) ---
+# Used by OtpDbReader to read the latest two_factor_code from two_factor_authentications.
+db.host=your.db.host
+db.port=3306
+db.name=your_db_name
+db.user=your_db_user
+db.password=your_db_password

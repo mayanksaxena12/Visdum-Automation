@@ -8,13 +8,12 @@ the performance model, and **how to add new test cases without writing code**.
 ## 1. High-level architecture
 
 ```
-                       ┌─────────────────────────────┐
-                       │   Control file (CSV / XLSX) │   <- test DATA (no logic)
-                       │  datadriven-testcases.csv   │
-                       └──────────────┬──────────────┘
-                                      │ read (only Run=Yes rows)
-                                      ▼
-        TestCaseReader ──► TestCaseRow ──► DataDrivenTest (@DataProvider)
+                       ┌──────────────────────────────┐
+                       │   Control file (XLSX only)   │   <- test DATA (no logic)
+                       │   manual-testcases.xlsx      │
+                       └──────────────┬───────────────┘
+                                      │ read all sheets                                      ▼
+          ExcelTestCaseReader ──► TestCaseRow ──► ExcelDrivenTest (@DataProvider)
                                                       │ dispatch by Module:Scenario
                                                       ▼
                                             TestCaseRegistry ──► TestAction
@@ -26,10 +25,10 @@ the performance model, and **how to add new test cases without writing code**.
                           DriverFactory (ThreadLocal WebDriver)  ──► Chrome
 ```
 
-- **Test data** lives entirely in the control file. **Test logic** lives in Page Objects and the
+- **Test data** lives entirely in the Excel workbook. **Test logic** lives in Page Objects and the
   registry. The two never mix — this is the core of the data-driven design.
 - The classic per-class tests (`tests/employees`, `tests/teams`, `tests/departments`) still exist
-  and are unchanged; the data-driven runner is an additional execution path over the same Page
+  and are unchanged; the Excel-driven runner is an additional execution path over the same Page
   Objects.
 
 ---

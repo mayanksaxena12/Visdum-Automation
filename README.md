@@ -47,14 +47,30 @@ mvn -q dependency:resolve
 ## 3. Running the tests
 
 ### 3.1 Run everything (recommended)
-Runs the full suite defined in `testng.xml` — every Employees and Teams test class, with the
-ExtentReports listener attached automatically.
-
+Runs the **Excel-driven suite** defined in `testng-excel.xml` — it reads every sheet of the QA
+workbook (`src/test/resources/manual-testcases.xlsx`), executes the auto-mappable read-only
+scenarios (Search / Sort / ColumnFilter / View for User, Team, Department) and reports every other
+row (Login module, destructive/complex scenarios) as Skipped with a reason. The ExtentReports
+listener is attached automatically.
 ```
 mvn test
 ```
 
-> ⚠️ This includes **destructive** tests (Create/Edit/Deactivate/status-change). By default they
+> The **data-driven suite** (`testng-datadriven.xml`, `tests/datadriven.DataDrivenTest`) does **not**
+run by default. To run it (or the original class-based `testng.xml`) instead, temporarily point
+`pom.xml` at the desired suite:
+ 
+```xml
+<!-- pom.xml -->
+<suiteXmlFiles>
+    <suiteXmlFile>testng-datadriven.xml</suiteXmlFile>
+</suiteXmlFiles>
+```
+ 
+Then `mvn test`. (The `suiteXmlFiles` value in `pom.xml` takes precedence, so a `-DsuiteXmlFile=...`
+command-line flag is ignored while it's set.)
+ 
+> ⚠️ `testng.xml` includes **destructive** tests (Create/Edit/Deactivate/status-change). By default they
 > **skip themselves** unless you explicitly enable them — see §3.4. Safe read-only tests
 > (Search, Sort, Filter, View, Validation) always run.
 
@@ -65,6 +81,10 @@ mvn test -Dtest=SearchUserTest
 ```
 mvn test -Dtest=ColumnFilterUserTest
 ```
+
+> ⚠️ `-Dtest=...` is only honoured when `pom.xml` has **no** `<suiteXmlFiles>` block (the block takes
+> precedence and makes Maven run the suite instead). To run a single class, either remove/comment the
+> `suiteXmlFiles` block in `pom.xml`, or run the class directly from your IDE.
 
 ### 3.3 Run a single test method (including all `@DataProvider` rows)
 ```
@@ -219,7 +239,9 @@ Open it in any browser after the run finishes.
 ```
 VisdumAutomation/
 ├── pom.xml                          # Maven deps: Selenium, TestNG, WebDriverManager, ExtentReports, POI
-├── testng.xml                       # Suite definition + ExtentReportListener registration
+├── testng-excel.xml                 # Default suite (runs the Excel-driven test) + ExtentReportListener registration
+├── testng-datadriven.xml            # Optional data-driven suite (not run by default)
+├── testng.xml                       # Optional class-based suite (not run by default)
 ├── src/test/resources/
 │   └── config.properties            # url / username / password for the target environment
 └── src/test/java/

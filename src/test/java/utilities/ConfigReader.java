@@ -29,4 +29,10 @@ public class ConfigReader {
 
         return properties.getProperty(key);
     }
+
+    public static String get(String key, String defaultValue) {
+ 
+        String value = properties.getProperty(key);
+        return (value == null || value.trim().isEmpty()) ? defaultValue : value.trim();
+    }
 }

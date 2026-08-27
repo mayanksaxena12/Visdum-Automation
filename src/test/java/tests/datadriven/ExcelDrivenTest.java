@@ -24,8 +24,12 @@ import utilities.TestCaseRow;
  * <ul>
  *   <li>Rows whose classified {@code Module:Scenario} has automation (User/Team/Department
  *       Search, Sort, ColumnFilter, View) are executed live.</li>
- *   <li>All other rows (Login module, and destructive/complex/manual scenarios) are reported as
- *       <b>Skipped</b> with a clear reason -- they are never silently dropped.</li>
+ *   <li>Login rows that reach the 2-step verification screen are executed live too: the OTP is
+ *       read from the UAT database ({@code two_factor_authentications}, latest row via
+ *       {@code ORDER BY id DESC}) so the full OTP flow can be automated.</li>
+ *   <li>All other rows (OTP edge cases without a mapping, and destructive/complex/manual
+ *       scenarios) are reported as <b>Skipped</b> with a clear reason -- they are never
+ *       silently dropped.</li>
  * </ul>
  *
  * <p>Login happens lazily, only for auto-executable rows, so the hundreds of manual rows skip

@@ -32,6 +32,6 @@ public class CreateDepartmentTest extends DepartmentsBaseTest {
         form.submitNewDepartment();
 
         departments.search(departmentName);
-        Assert.assertTrue(departments.isDepartmentListed(departmentName));
+        Assert.assertTrue(departments.isRowListed(departmentName));
     }
 }

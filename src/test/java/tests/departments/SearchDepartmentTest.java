@@ -12,7 +12,7 @@ public class SearchDepartmentTest extends DepartmentsBaseTest {
     public void verifySearchDepartment() {
         DepartmentsPage page = new DepartmentsPage(DriverFactory.getDriver());
         page.search("Sales");
-        Assert.assertTrue(
-                DriverFactory.getDriver().getPageSource().contains("Sales"));
+         Assert.assertTrue(page.isRowListed("Sales"),
+                "Expected a department row to match 'Sales'.");
     }
 }

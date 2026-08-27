@@ -1,14 +1,14 @@
 package Pages;
 
-import java.io.File;
+//import java.io.File;
 import java.time.Duration;
 import org.openqa.selenium.By;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
+//import org.openqa.selenium.OutputType;
+//import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.support.*;
+//import org.openqa.selenium.support.*;
 
 public class DashboardPage {
 
@@ -98,5 +98,10 @@ public class DashboardPage {
         wait.until(
                         ExpectedConditions.elementToBeClickable(departmentsMenu))
                 .click();
+    }
+
+      /** True once the authenticated dashboard is reachable (sidebar toggle present). */
+    public boolean isLoaded() {
+        return wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).isDisplayed();
     }
 }

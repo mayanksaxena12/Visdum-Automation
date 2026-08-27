@@ -11,7 +11,7 @@
   Optional overrides for live lookup terms:
     -Dexcel.user.search=Mayank -Dexcel.team.search=Sales -Dexcel.department.search="Sales Engineers"
 -->
-<suite name="Visdum Excel-Driven Suite" data-provider-thread-count="3">
+<suite name="Visdum Excel-Driven Suite" data-provider-thread-count="1">
 
     <listeners>
         <listener class-name="listeners.ExtentReportListener"/>

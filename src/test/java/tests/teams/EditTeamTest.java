@@ -4,6 +4,7 @@ import Base.DriverFactory;
 import Base.TeamsBaseTest;
 import Pages.TeamFormPage;
 import Pages.TeamsPage;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import utilities.ExecutionGuard;
@@ -21,12 +22,18 @@ public class EditTeamTest extends TeamsBaseTest {
         if (team.isBlank()) {
             throw new IllegalArgumentException("Set -Dtest.team.existing=<team name> for the edit test.");
         }
+        String updatedName = System.getProperty("test.team.updated.name", "Updated Automation Team");
         TeamsPage teams = new TeamsPage(DriverFactory.getDriver());
         TeamFormPage form = new TeamFormPage(DriverFactory.getDriver());
 
         teams.search(team);
         teams.openEditTeam(team);
-        form.enterTeamName(System.getProperty("test.team.updated.name", "Updated Automation Team"));
+        // form.enterTeamName(System.getProperty("test.team.updated.name", "Updated Automation Team"));
+        form.enterTeamName(updatedName);
         form.saveEditedTeam();
+
+        teams.search(updatedName);
+        Assert.assertTrue(teams.isRowListed(updatedName),
+                "Expected the edited team '" + updatedName + "' to be listed.");
     }
 }

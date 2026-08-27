@@ -32,6 +32,7 @@ public class CreateTeamTest extends TeamsBaseTest {
         form.submitNewTeam();
 
         teams.search(teamName);
-        Assert.assertTrue(teams.isTeamListed(teamName));
+        // Assert.assertTrue(teams.isTeamListed(teamName));
+        Assert.assertTrue(teams.isRowListed(teamName));
     }
 }

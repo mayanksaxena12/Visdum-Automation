@@ -45,7 +45,10 @@ public final class ExcelTestCaseReader {
     private static final List<String> AUTO_SCENARIOS = List.of(
             "search", "sort", "columnfilter", "view",
             "validlogin", "invalidpassword", "invalidemail", "emptyfields",
-            "emailonly", "passwordonly", "emailformat", "emaillength", "passwordlength");
+            // "emailonly", "passwordonly", "emailformat", "emaillength", "passwordlength");
+            "emailonly", "passwordonly", "emailformat", "emaillength", "passwordlength",
+            "otpsent", "otp", "wrongotp", "emptyotp", "shortotp", "alphaotp",
+            "pasteotp", "otpformat");
 
     private ExcelTestCaseReader() {
     }
@@ -112,6 +115,42 @@ public final class ExcelTestCaseReader {
     public static String classify(String module, String scenario, String description) {
         String t = (scenario + " " + description).toLowerCase();
         if ("Login".equalsIgnoreCase(module)) {
+            // OTP / 2-step verification flow (OTP read live from the UAT database).
+            if (t.contains("otp") || t.contains("2-step") || t.contains("two step")
+                    || t.contains("two-factor") || t.contains("two factor")) {
+                if (t.contains("is sent") || t.contains("sent after")
+                        || t.contains("redirect to otp screen")) {
+                    return "otpsent";
+                }
+                if (t.contains("wrong otp") || (t.contains("wrong") && t.contains("otp"))) {
+                    return "wrongotp";
+                }
+                if (t.contains("empty otp") || t.contains("without entering otp")
+                        || (t.contains("empty") && t.contains("otp"))
+                        || (t.contains("blank") && t.contains("otp"))) {
+                    return "emptyotp";
+                }
+                if (t.contains("incomplete") || t.contains("fewer than") || t.contains("partial")
+                        || (t.contains("less than") && t.contains("digit"))) {
+                    return "shortotp";
+                }
+                if (t.contains("alphab") || t.contains("special character")
+                        || t.contains("combination of valid and invalid")) {
+                    return "alphaotp";
+                }
+                if (t.contains("past")) {
+                    return "pasteotp";
+                }
+                if (t.contains("correct otp") || t.contains("login success")
+                        || t.contains("verified successfully")) {
+                    return "otp";
+                }
+                if (t.contains("6-digit") || t.contains("six digit") || t.contains("numeric")) {
+                    return "otpformat";
+                }
+                return "manual"; // resend / timer / expired / delivery / reuse / session / network
+            }
+
             if (t.contains("valid login") || (t.contains("login") && t.contains("valid email and password"))) {
                 return "validlogin";
             }

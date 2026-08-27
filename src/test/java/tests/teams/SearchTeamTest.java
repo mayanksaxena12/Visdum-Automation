@@ -15,9 +15,12 @@ public class SearchTeamTest extends TeamsBaseTest {
 
         page.search("Sales");
 
-        Assert.assertTrue(
-                DriverFactory.getDriver()
-                        .getPageSource()
-                        .contains("Sales"));
+        // Assert.assertTrue(
+        //         DriverFactory.getDriver()
+        //                 .getPageSource()
+        //                 .contains("Sales"));
+
+        Assert.assertTrue(page.isRowListed("Sales"),
+                "Expected a team row to match 'Sales'.");
     }
 }

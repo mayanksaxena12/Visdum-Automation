@@ -3,7 +3,7 @@ package utilities;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openqa.selenium.WebDriver;
+//import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 
 import Pages.DashboardPage;
@@ -37,8 +37,10 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
             page.search(row.param1());
-            Assert.assertTrue(driver.getPageSource().contains(row.param1()),
-                    "Expected search results to contain '" + row.param1() + "'.");
+            // Assert.assertTrue(driver.getPageSource().contains(row.param1()),
+            //         "Expected search results to contain '" + row.param1() + "'.");
+            Assert.assertTrue(page.isRowListed(row.param1()),
+                    "Expected a user row to match '" + row.param1() + "'.");
         });
         register("user:sort", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
@@ -69,8 +71,10 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToTeams();
             TeamsPage page = new TeamsPage(driver);
             page.search(row.param1());
-            Assert.assertTrue(driver.getPageSource().contains(row.param1()),
-                    "Expected team search results to contain '" + row.param1() + "'.");
+            // Assert.assertTrue(driver.getPageSource().contains(row.param1()),
+            //         "Expected team search results to contain '" + row.param1() + "'.");
+            Assert.assertTrue(page.isRowListed(row.param1()),
+                    "Expected a team row to match '" + row.param1() + "'.");
         });
         register("team:sort", (driver, row) -> {
             new DashboardPage(driver).navigateToTeams();
@@ -101,8 +105,10 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToDepartments();
             DepartmentsPage page = new DepartmentsPage(driver);
             page.search(row.param1());
-            Assert.assertTrue(driver.getPageSource().contains(row.param1()),
-                    "Expected department search results to contain '" + row.param1() + "'.");
+            // Assert.assertTrue(driver.getPageSource().contains(row.param1()),
+            //         "Expected department search results to contain '" + row.param1() + "'.");
+            Assert.assertTrue(page.isRowListed(row.param1()),
+                    "Expected a department row to match '" + row.param1() + "'.");
         });
         register("department:sort", (driver, row) -> {
             new DashboardPage(driver).navigateToDepartments();
@@ -191,6 +197,85 @@ public final class TestCaseRegistry {
             lp.clickLogin();
             Assert.assertTrue(lp.isFieldErrorVisible("Minimum 8 symbols"));
         });
+
+        // ---------------- 2FA / OTP flow (OTP read live from the UAT database) ----------------
+        // The OTP actions below all start from the login page: they submit valid credentials,
+        // wait for the 2-step verification screen, fetch the latest OTP from two_factor_authentications
+        // (ORDER BY id DESC) and then assert the requested behavior.
+ 
+        register("login:otpsent", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(),
+                    "Valid login should reach the 2-step verification screen.");
+        });
+ 
+        register("login:otp", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(), "2-step verification screen should appear.");
+            String otp = utilities.OtpDbReader.latestOtp();
+            lp.enterOtp(otp);
+            lp.clickVerify();
+            Assert.assertTrue(new DashboardPage(driver).isLoaded(),
+                    "Valid OTP '" + otp + "' should log the user in and land on the dashboard.");
+        });
+ 
+        register("login:wrongotp", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(), "2-step verification screen should appear.");
+            lp.enterOtp("000000");
+            lp.clickVerify();
+            Assert.assertTrue(lp.isStillOn2FA(),
+                    "Wrong OTP should keep the user on the 2-step verification screen.");
+        });
+ 
+        register("login:emptyotp", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(), "2-step verification screen should appear.");
+            lp.clickVerify();
+            Assert.assertTrue(lp.isStillOn2FA(),
+                    "Submitting no OTP should keep the user on the 2-step verification screen.");
+        });
+ 
+        register("login:shortotp", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(), "2-step verification screen should appear.");
+            lp.enterOtp("123");
+            lp.clickVerify();
+            Assert.assertTrue(lp.isStillOn2FA(),
+                    "A partial OTP should keep the user on the 2-step verification screen.");
+        });
+ 
+        register("login:alphaotp", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(), "2-step verification screen should appear.");
+            lp.enterOtp("abc123");
+            lp.clickVerify();
+            Assert.assertTrue(lp.isStillOn2FA(),
+                    "An OTP containing alphabets should keep the user on the 2-step verification screen.");
+        });
+ 
+        register("login:pasteotp", (driver, row) -> {
+            LoginPage lp = new LoginPage(driver);
+            lp.login(ConfigReader.get("username"), ConfigReader.get("password"));
+            Assert.assertTrue(lp.is2FADisplayed(), "2-step verification screen should appear.");
+            String otp = utilities.OtpDbReader.latestOtp();
+            lp.pasteOtp(otp);
+            Assert.assertTrue(lp.isOtpFilled(otp),
+                    "Pasting a 6-digit OTP should auto-fill all digit boxes.");
+        });
+ 
+        register("login:otpformat", (driver, row) -> {
+            String otp = utilities.OtpDbReader.latestOtp();
+            Assert.assertTrue(otp.matches("\\d{6}"),
+                    "two_factor_code '" + otp + "' should be exactly 6 numeric digits.");
+        });
+    
     }
 
     private TestCaseRegistry() {
