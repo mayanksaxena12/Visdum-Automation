@@ -55,12 +55,12 @@ public class ExcelDrivenTest implements ITest {
 
     @Test(dataProvider = "excelRows")
     public void execute(TestCaseRow row) throws Exception {
-        currentName.set("[" + row.get("Sheet") + "] " + row.getTestCaseId() + " - " + row.getDescription());
+        String testTitle = "[" + row.get("Sheet") + "] " + row.getTestCaseId() + " - " + row.getDescription();
+        currentName.set(testTitle);
 
-        if (!ExcelTestCaseReader.isAutoExecutable(row)) {
-            throw new SkipException("Manual/unmapped case (module=" + row.getModule()
-                    + ", scenario=" + row.getScenario() + "). No automated mapping -- execute manually.");
-        }
+        System.out.println("\n------------------------------------------------------------");
+        System.out.println("[EXCEL ROW RUNNING] " + testTitle);
+        System.out.println("  Module: " + row.getModule() + " | Scenario: " + row.getScenario() + " | ActionKey: " + row.actionKey());
 
         WebDriver driver = DriverFactory.getDriver();
         driver.get(ConfigReader.get("url"));

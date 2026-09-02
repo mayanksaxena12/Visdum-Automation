@@ -39,6 +39,9 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("Users", "User");
         SHEET_MODULE.put("Team", "Team");
         SHEET_MODULE.put("Departments", "Department");
+        SHEET_MODULE.put("Data Streams", "DataStream");
+        SHEET_MODULE.put("DataStreams", "DataStream");
+        SHEET_MODULE.put("Data Stream", "DataStream");
     }
 
     /** Scenario tokens that have safe, read-only automation in TestCaseRegistry. */

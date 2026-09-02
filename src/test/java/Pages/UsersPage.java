@@ -15,6 +15,7 @@ public class UsersPage extends AgGridListPage {
 
     private final By searchBox = By.cssSelector("input[placeholder='Search'], input[placeholder='Search User']");
     private final By addNewUser = By.xpath("//*[normalize-space()='Add New User']");
+    private final By fetchUsersBtn = By.xpath("//button[normalize-space()='Fetch Users']");
 
     public UsersPage(WebDriver driver) {
         super(driver);
@@ -26,6 +27,10 @@ public class UsersPage extends AgGridListPage {
 
     public void openCreateUser() {
         click(addNewUser);
+    }
+
+    public void openFetchUsers() {
+        click(fetchUsersBtn);
     }
 
     // /** Waits for the row containing {@code identifier} and returns its AG-Grid {@code row-index}. */

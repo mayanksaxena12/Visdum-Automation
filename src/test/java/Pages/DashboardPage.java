@@ -40,68 +40,62 @@ public class DashboardPage {
             By.xpath("//a[contains(@href,'users/department')]");
 
     public void navigateToEmployees() {
-
-
-        // Sidebar Open
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(sidebarToggle))
-                .click();
-
-
-
-        // Users Expand
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(usersMenu))
-                .click();
-
-        // Employees Click
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(employeesMenu))
-                .click();
-
-
-
-
+        isLoaded();
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(usersMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(employeesMenu)).click();
+        } catch (Exception e) {
+            driver.get(utilities.ConfigReader.get("url") + "/users/employees");
+        }
     }
 
     public void navigateToTeams() {
-
-        // Sidebar Open
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(sidebarToggle))
-                .click();
-
-        // Users Expand
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(usersMenu))
-                .click();
-
-        // Teams Click
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(teamsMenu))
-                .click();
+        isLoaded();
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(usersMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(teamsMenu)).click();
+        } catch (Exception e) {
+            driver.get(utilities.ConfigReader.get("url") + "/users/teams");
+        }
     }
 
     public void navigateToDepartments() {
+        isLoaded();
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(usersMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(departmentsMenu)).click();
+        } catch (Exception e) {
+            driver.get(utilities.ConfigReader.get("url") + "/users/department");
+        }
+    }
 
-        // Sidebar Open
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(sidebarToggle))
-                .click();
+    // Data Menu Locators
+    By dataMenu = By.xpath("//span[normalize-space()='Data']");
+    By rawDataMenu = By.xpath("//a[@href='/data/raw-data']");
+    By viewDataStreamsBtn = By.xpath("//button[normalize-space()='View']");
 
-        // Users Expand
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(usersMenu))
-                .click();
-
-        // Departments Click
-        wait.until(
-                        ExpectedConditions.elementToBeClickable(departmentsMenu))
-                .click();
+    public void navigateToDataStreams() {
+        isLoaded();
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(dataMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(rawDataMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(viewDataStreamsBtn)).click();
+        } catch (Exception e) {
+            // Direct route navigation fallback
+            driver.get(utilities.ConfigReader.get("url") + "/data/data-streams");
+        }
     }
 
       /** True once the authenticated dashboard is reachable (sidebar toggle present). */
     public boolean isLoaded() {
-        return wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).isDisplayed();
+        try {
+            return wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -17,14 +17,10 @@ public class SearchUserTest extends BaseTest {
         //                 DriverFactory.getDriver());
         UsersPage page = new UsersPage(DriverFactory.getDriver());
 
-        page.search("Mayank");
-
-        // Assert.assertTrue(
-        //         DriverFactory.getDriver()
-        //                 .getPageSource()
-        //                 .contains("Mayank"));
-        Assert.assertTrue(page.isRowListed("Mayank"),
-                "Expected a user row to match 'Mayank'.");
-        }   
+        String searchTerm = System.getProperty("search.user", "Mayank");
+        page.search(searchTerm);
+        Assert.assertTrue(page.isRowListed(searchTerm),
+                "Expected a user row to match '" + searchTerm + "'.");
+    }   
 
 }

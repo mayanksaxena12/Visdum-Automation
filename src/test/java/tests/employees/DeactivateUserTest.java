@@ -40,6 +40,7 @@ public class DeactivateUserTest extends BaseTest {
         // disabled until a last working day is chosen (see UsersList.tsx handleDeactive()).
         String lastWorkingDay = LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_LOCAL_DATE);
         modal.setLastWorkingDay(lastWorkingDay);
+        modal.selectProcessPayout(true);
         modal.submit();
 
         users.search(user);

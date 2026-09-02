@@ -53,16 +53,22 @@ public class ExtentReportListener implements ITestListener {
 
     @Override
     public void onTestStart(ITestResult result) {
+        System.out.println("\n------------------------------------------------------------");
+        System.out.println("[TEST RUNNING] " + result.getMethod().getQualifiedName() + " (" + result.getName() + ")");
         testMap.put(Thread.currentThread().getId(), createTest(result));
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
+        System.out.println("[TEST SUCCESS] ✅ " + result.getName());
+        System.out.println("------------------------------------------------------------\n");
         currentTest(result).log(Status.PASS, "Test passed.");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
+        System.out.println("[TEST FAILED] ❌ " + result.getName() + " | Failure Reason: " + (result.getThrowable() != null ? result.getThrowable().getMessage() : "Unknown Error"));
+        System.out.println("------------------------------------------------------------\n");
         ExtentTest test = currentTest(result);
         test.log(Status.FAIL, result.getThrowable());
         attachScreenshot(test);
@@ -70,6 +76,8 @@ public class ExtentReportListener implements ITestListener {
 
     @Override
     public void onTestSkipped(ITestResult result) {
+        System.out.println("[TEST SKIPPED] ⚠️ " + result.getName() + (result.getThrowable() != null ? " | Reason: " + result.getThrowable().getMessage() : ""));
+        System.out.println("------------------------------------------------------------\n");
         currentTest(result).log(Status.SKIP, result.getThrowable() != null
                 ? result.getThrowable().getMessage()
                 : "Test skipped.");

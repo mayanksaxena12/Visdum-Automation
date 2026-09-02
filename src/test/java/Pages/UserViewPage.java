@@ -14,6 +14,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 public class UserViewPage extends BasePage {
 
     private final By backButton = By.xpath("//button[normalize-space()='Back']");
+    private final By viewManagerHistoryLink = By.xpath("//a[normalize-space()='View Manager History']");
+    private final By managerHistoryHeader = By.xpath("//h4[normalize-space()='Manager History']");
+    private final By closeManagerHistoryBtn = By.xpath("//div[./h4[normalize-space()='Manager History']]//button");
 
     public UserViewPage(WebDriver driver) {
         super(driver);
@@ -52,7 +55,52 @@ public class UserViewPage extends BasePage {
         return value("Employee Id");
     }
 
+    public String getJoiningDate() {
+        return value("Joining Date");
+    }
+
+    public String getDesignation() {
+        return value("Designation");
+    }
+
+    public String getBankDetails() {
+        return value("Bank Details");
+    }
+
+    public String getTaxDetails() {
+        return value("Tax Details");
+    }
+
+    public String getManager() {
+        return value("Manager");
+    }
+
+    public String getManagerEffectiveDate() {
+        return value("Manager Effective Date");
+    }
+
+    public String getTeam() {
+        return value("Team");
+    }
+
+    public String getDepartment() {
+        return value("Department");
+    }
+
+    public void openManagerHistory() {
+        click(viewManagerHistoryLink);
+    }
+
+    public boolean isManagerHistoryOpen() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(managerHistoryHeader)).isDisplayed();
+    }
+
+    public void closeManagerHistory() {
+        click(closeManagerHistoryBtn);
+    }
+
     public void close() {
         click(backButton);
     }
 }
+
