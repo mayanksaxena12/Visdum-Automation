@@ -36,6 +36,7 @@
             <class name="tests.employees.EditUserTest"/>
             <class name="tests.employees.ChangeUserPasswordTest"/>
             <class name="tests.employees.DeactivateUserTest"/>
+            <class name="tests.employees.FetchUsersTest"/>
 
         </classes>
 
@@ -74,6 +75,17 @@
             <class name="tests.departments.AddDepartmentMembersTest"/>
             <class name="tests.departments.DeactivateDepartmentTest"/>
             <class name="tests.departments.ActivateDepartmentTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Data Streams Test">
+
+        <classes>
+
+            <class name="tests.datastreams.SearchDataStreamTest"/>
+            <class name="tests.datastreams.CreateDataStreamTest"/>
 
         </classes>
 

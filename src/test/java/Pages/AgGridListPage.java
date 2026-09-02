@@ -107,4 +107,8 @@ public abstract class AgGridListPage extends BasePage {
     public void closeColumnMenu() {
         driver.findElement(By.tagName("body")).sendKeys(org.openqa.selenium.Keys.ESCAPE);
     }
+
+    public boolean isGridLoaded() {
+        return !driver.findElements(By.cssSelector(".ag-root-wrapper, .ag-theme-alpine")).isEmpty();
+    }
 }

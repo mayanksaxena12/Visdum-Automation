@@ -1,6 +1,8 @@
 package tests.employees;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import Base.BaseTest;
 import Base.DriverFactory;
@@ -35,4 +37,31 @@ public class CreateUserTest extends BaseTest {
         form.enterPasswordDetails(password);
         form.submitNewUser();
     }
+
+    @Test
+    public void createValidUserWithAllFields() {
+        String id = String.valueOf(Instant.now().toEpochMilli());
+        String password = System.getProperty("test.user.password", "Test@1234");
+        String todayIso = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        UsersPage users = new UsersPage(DriverFactory.getDriver());
+        CreateUserPage form = new CreateUserPage(DriverFactory.getDriver());
+
+        users.openCreateUser();
+        form.enterPersonalDetails("Full Auto User " + id, "fullauto." + id + "@example.test",
+                "FULLAUTO-" + id, System.getProperty("test.user.role", "Individual Contributor"),
+                System.getProperty("test.user.currency", "INR"));
+        form.clickNextStep();
+
+        String manager = System.getProperty("test.user.manager");
+        form.enterOfficialDetails("EMP-FULL-" + id, todayIso, "Senior Automation Engineer",
+                manager, manager != null && !manager.isBlank() ? todayIso : null,
+                System.getProperty("test.user.team"), System.getProperty("test.user.department"),
+                "HDFC Bank - 123456789", "PAN-ABCDE1234F");
+        form.clickNextStep();
+
+        form.enterPasswordDetails(password, true);
+        form.submitNewUser();
+    }
 }
+

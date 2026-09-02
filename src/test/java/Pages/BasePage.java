@@ -22,10 +22,12 @@ public abstract class BasePage {
     }
 
     protected void click(By locator) {
+        System.out.println("  [STEP] 🖱️ Click -> " + locator);
         wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
     }
 
     protected void type(By locator, String value) {
+        System.out.println("  [STEP] ⌨️ Type '" + value + "' -> " + locator);
         WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         element.clear();
         element.sendKeys(value);
@@ -41,6 +43,7 @@ public abstract class BasePage {
      * click the control (via its placeholder text) to focus the input, type the option, press Enter.
      */
     protected void selectReactOption(String placeholder, String option) {
+        System.out.println("  [STEP] 🔽 Select Option '" + option + "' for Dropdown -> '" + placeholder + "'");
         WebElement control = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("(//*[normalize-space()=" + xpathLiteral(placeholder) + "])[1]")));
         control.click();
