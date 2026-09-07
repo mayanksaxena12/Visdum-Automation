@@ -8,6 +8,7 @@ import Base.BaseTest;
 import Base.DriverFactory;
 import Pages.CreateUserPage;
 import Pages.UsersPage;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import utilities.ExecutionGuard;
@@ -22,12 +23,13 @@ public class CreateUserTest extends BaseTest {
     @Test
     public void createValidUser() {
         String id = String.valueOf(Instant.now().toEpochMilli());
+        String userName = "Automation User " + id;
         String password = System.getProperty("test.user.password", "Test@1234");
         UsersPage users = new UsersPage(DriverFactory.getDriver());
         CreateUserPage form = new CreateUserPage(DriverFactory.getDriver());
 
         users.openCreateUser();
-        form.enterPersonalDetails("Automation User " + id, "automation." + id + "@example.test",
+        form.enterPersonalDetails(userName, "automation." + id + "@example.test",
                 "AUTO-" + id, System.getProperty("test.user.role", "Individual Contributor"),
                 System.getProperty("test.user.currency", "INR"));
         form.clickNextStep();
@@ -36,11 +38,16 @@ public class CreateUserTest extends BaseTest {
         form.clickNextStep();
         form.enterPasswordDetails(password);
         form.submitNewUser();
+
+        users.search(userName);
+        Assert.assertTrue(users.isRowListed(userName),
+                "Expected created user '" + userName + "' to be listed in the grid.");
     }
 
     @Test
     public void createValidUserWithAllFields() {
         String id = String.valueOf(Instant.now().toEpochMilli());
+        String fullUserName = "Full Auto User " + id;
         String password = System.getProperty("test.user.password", "Test@1234");
         String todayIso = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
@@ -48,7 +55,7 @@ public class CreateUserTest extends BaseTest {
         CreateUserPage form = new CreateUserPage(DriverFactory.getDriver());
 
         users.openCreateUser();
-        form.enterPersonalDetails("Full Auto User " + id, "fullauto." + id + "@example.test",
+        form.enterPersonalDetails(fullUserName, "fullauto." + id + "@example.test",
                 "FULLAUTO-" + id, System.getProperty("test.user.role", "Individual Contributor"),
                 System.getProperty("test.user.currency", "INR"));
         form.clickNextStep();
@@ -62,6 +69,10 @@ public class CreateUserTest extends BaseTest {
 
         form.enterPasswordDetails(password, true);
         form.submitNewUser();
+
+        users.search(fullUserName);
+        Assert.assertTrue(users.isRowListed(fullUserName),
+                "Expected full user '" + fullUserName + "' to be listed in the grid.");
     }
 }
 

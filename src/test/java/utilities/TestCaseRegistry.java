@@ -36,11 +36,19 @@ public final class TestCaseRegistry {
         register("user:search", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            page.search(row.param1());
-            // Assert.assertTrue(driver.getPageSource().contains(row.param1()),
-            //         "Expected search results to contain '" + row.param1() + "'.");
-            Assert.assertTrue(page.isRowListed(row.param1()),
-                    "Expected a user row to match '" + row.param1() + "'.");
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {
+                }
+            }
+            if (term == null || term.isBlank()) {
+                term = "Mayank";
+            }
+            page.search(term);
+            Assert.assertTrue(page.isRowListed(term),
+                    "Expected a user row to match '" + term + "'.");
         });
         register("user:sort", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
@@ -61,9 +69,21 @@ public final class TestCaseRegistry {
         register("user:view", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            page.search(row.param1());
-            page.openView(row.param1());
-            Assert.assertTrue(new UserViewPage(driver).isOpen(), "User view drawer should open.");
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {
+                }
+            }
+            if (term == null || term.isBlank()) {
+                term = "Mayank";
+            }
+            page.search(term);
+            page.openView(term);
+            UserViewPage view = new UserViewPage(driver);
+            Assert.assertTrue(view.isOpen(), "User view drawer should open.");
+            view.close();
         });
         register("user:create", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();

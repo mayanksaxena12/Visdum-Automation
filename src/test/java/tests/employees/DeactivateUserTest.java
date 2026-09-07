@@ -3,18 +3,19 @@ package tests.employees;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import Base.BaseTest;
 import Base.DriverFactory;
+import Base.UserModuleTest;
 import Pages.DeactivateUserModal;
 import Pages.UsersPage;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import utilities.ExecutionGuard;
+import utilities.TestUser;
 
 /** Covers the Deactivate confirmation modal (inline in UsersList.tsx), which had a Page Object
  * (DeactivateUserModal) and a UsersPage.openDeactivateUser() hook but no test exercising either. */
-public class DeactivateUserTest extends BaseTest {
+public class DeactivateUserTest extends UserModuleTest {
 
     @BeforeMethod(alwaysRun = true)
     public void requireDeactivatePermission() {
@@ -25,8 +26,8 @@ public class DeactivateUserTest extends BaseTest {
     public void deactivateExistingUser() {
         String user = System.getProperty("test.user.existing", "");
         if (user.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Set -Dtest.user.existing=<email or name> for the deactivate test.");
+            TestUser created = createActiveUser();
+            user = created.name;
         }
         UsersPage users = new UsersPage(DriverFactory.getDriver());
         DeactivateUserModal modal = new DeactivateUserModal(DriverFactory.getDriver());
