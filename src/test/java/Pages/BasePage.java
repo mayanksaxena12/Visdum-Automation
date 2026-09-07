@@ -34,6 +34,13 @@ public abstract class BasePage {
         element.sendKeys(value);
     }
 
+    protected void clearField(By locator) {
+        System.out.println("  [STEP] ⌫ Clear field -> " + locator);
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
+        element.clear();
+    }
+
     protected String text(By locator) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
     }

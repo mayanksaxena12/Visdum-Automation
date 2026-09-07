@@ -8,8 +8,12 @@ public final class ExecutionGuard {
     private ExecutionGuard() {
     }
 
+    public static boolean isDestructiveTestsEnabled() {
+        return Boolean.parseBoolean(System.getProperty("run.destructive.tests", "false"));
+    }
+
     public static void requireDestructiveTestsEnabled() {
-        if (!Boolean.parseBoolean(System.getProperty("run.destructive.tests", "false"))) {
+        if (!isDestructiveTestsEnabled()) {
             throw new SkipException("Set -Drun.destructive.tests=true to run data-changing user tests.");
         }
     }
