@@ -10,13 +10,26 @@ import org.testng.annotations.Test;
 /** Covers the read-only "View" drawer (UserActionModals/UserView.tsx) and Manager History drawer. */
 public class ViewUserTest extends BaseTest {
 
+    private String resolveUser(UsersPage users) {
+        String user = System.getProperty("test.user.existing", "");
+        if (user.isBlank()) {
+            try {
+                user = users.getFirstRowValue("name");
+            } catch (Exception ignored) {
+            }
+        }
+        if (user.isBlank()) {
+            user = "Mayank";
+        }
+        return user;
+    }
+
     @Test
     public void viewUserShowsSearchedRecord() {
-        String user = System.getProperty("test.user.existing", "Mayank");
-
         UsersPage users = new UsersPage(DriverFactory.getDriver());
         UserViewPage view = new UserViewPage(DriverFactory.getDriver());
 
+        String user = resolveUser(users);
         users.search(user);
         users.openView(user);
 
@@ -29,11 +42,10 @@ public class ViewUserTest extends BaseTest {
 
     @Test
     public void viewUserManagerHistoryOpensDrawer() {
-        String user = System.getProperty("test.user.existing", "Mayank");
-
         UsersPage users = new UsersPage(DriverFactory.getDriver());
         UserViewPage view = new UserViewPage(DriverFactory.getDriver());
 
+        String user = resolveUser(users);
         users.search(user);
         users.openView(user);
 

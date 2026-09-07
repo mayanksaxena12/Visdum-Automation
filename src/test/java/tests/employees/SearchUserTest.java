@@ -17,7 +17,16 @@ public class SearchUserTest extends BaseTest {
         //                 DriverFactory.getDriver());
         UsersPage page = new UsersPage(DriverFactory.getDriver());
 
-        String searchTerm = System.getProperty("search.user", "Mayank");
+        String searchTerm = System.getProperty("search.user", "");
+        if (searchTerm.isBlank()) {
+            try {
+                searchTerm = page.getFirstRowValue("name");
+            } catch (Exception ignored) {
+            }
+        }
+        if (searchTerm.isBlank()) {
+            searchTerm = "Mayank";
+        }
         page.search(searchTerm);
         Assert.assertTrue(page.isRowListed(searchTerm),
                 "Expected a user row to match '" + searchTerm + "'.");

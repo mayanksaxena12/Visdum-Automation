@@ -64,6 +64,21 @@ public abstract class AgGridListPage extends BasePage {
             return false;
         }
     }
+
+    /** Returns the text of the first rendered row for a given column id (e.g. "name"). */
+    public String getFirstRowValue(String colId) {
+        scrollColumnIntoView(colId);
+        By locator;
+        if ("name".equalsIgnoreCase(colId)) {
+            locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='name']//div[contains(@class,'text-truncate')]//span");
+            if (driver.findElements(locator).isEmpty()) {
+                locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='name']");
+            }
+        } else {
+            locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='" + colId + "']");
+        }
+        return text(locator).trim();
+    }
  
     /** Clicks an AG-Grid column header to cycle its sort state (none -> ascending -> descending). */
     public void sortByColumn(String colId) {

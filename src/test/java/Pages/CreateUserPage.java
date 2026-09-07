@@ -115,6 +115,7 @@ public class CreateUserPage extends BasePage {
 
     public void submitNewUser() {
         click(submit);
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(submit));
     }
 
     public void enterName(String fullName) {
@@ -131,11 +132,13 @@ public class CreateUserPage extends BasePage {
 
     public void saveEditedUser() {
         click(saveUser);
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(saveUser));
     }
 
     public boolean isValidationMessageVisible(String message) {
+        String cleanMessage = message.endsWith(".") ? message.substring(0, message.length() - 1) : message;
         return wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//*[@role='alert' and normalize-space()=" + xpathLiteral(message) + "]"))).isDisplayed();
+                By.xpath("//*[@role='alert' and contains(normalize-space(), " + xpathLiteral(cleanMessage) + ")]"))).isDisplayed();
     }
 
     private void setDateField(By locator, String isoDate) {

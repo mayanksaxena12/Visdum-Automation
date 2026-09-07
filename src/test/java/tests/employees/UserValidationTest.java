@@ -15,6 +15,10 @@ public class UserValidationTest extends BaseTest {
         CreateUserPage form = new CreateUserPage(DriverFactory.getDriver());
         users.openCreateUser();
         form.clickNextStep();
-        Assert.assertTrue(form.isValidationMessageVisible("Name is required"));
+        Assert.assertTrue(form.isValidationMessageVisible("Name is required"), "Expected Name validation error.");
+        Assert.assertTrue(form.isValidationMessageVisible("Email is required"), "Expected Email validation error.");
+        Assert.assertTrue(form.isValidationMessageVisible("User Reference ID is required"), "Expected User Ref ID validation error.");
+        Assert.assertTrue(form.isValidationMessageVisible("Role is required"), "Expected Role validation error.");
+        Assert.assertTrue(form.isValidationMessageVisible("Currency is required"), "Expected Currency validation error.");
     }
 }

@@ -29,6 +29,7 @@ public abstract class BasePage {
     protected void type(By locator, String value) {
         System.out.println("  [STEP] ⌨️ Type '" + value + "' -> " + locator);
         WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
         element.clear();
         element.sendKeys(value);
     }
