@@ -75,6 +75,7 @@ public class DashboardPage {
     // Data Menu Locators
     By dataMenu = By.xpath("//span[normalize-space()='Data']");
     By rawDataMenu = By.xpath("//a[@href='/data/raw-data']");
+    By dealCreditsMenu = By.xpath("//a[@href='/data/deal-credits']");
     By viewDataStreamsBtn = By.xpath("//button[normalize-space()='View']");
 
     public void navigateToDataStreams() {
@@ -87,6 +88,28 @@ public class DashboardPage {
         } catch (Exception e) {
             // Direct route navigation fallback
             driver.get(utilities.ConfigReader.get("url") + "/data/data-streams");
+        }
+    }
+
+    public void navigateToRawData() {
+        isLoaded();
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(dataMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(rawDataMenu)).click();
+        } catch (Exception e) {
+            driver.get(utilities.ConfigReader.get("url") + "/data/raw-data");
+        }
+    }
+
+    public void navigateToDealCredits() {
+        isLoaded();
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(dataMenu)).click();
+            wait.until(ExpectedConditions.elementToBeClickable(dealCreditsMenu)).click();
+        } catch (Exception e) {
+            driver.get(utilities.ConfigReader.get("url") + "/data/deal-credits");
         }
     }
 

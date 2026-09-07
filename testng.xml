@@ -85,7 +85,40 @@
         <classes>
 
             <class name="tests.datastreams.SearchDataStreamTest"/>
+            <class name="tests.datastreams.ViewDataStreamTest"/>
             <class name="tests.datastreams.CreateDataStreamTest"/>
+            <class name="tests.datastreams.EditDataStreamTest"/>
+            <class name="tests.datastreams.StreamStatusTest"/>
+            <class name="tests.datastreams.EarningStreamTest"/>
+            <class name="tests.datastreams.PayoutStreamTest"/>
+            <class name="tests.datastreams.ReferenceStreamTest"/>
+            <class name="tests.datastreams.KeyValueStreamTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Raw Data Test">
+
+        <classes>
+
+            <class name="tests.rawdata.SearchRawDataTest"/>
+            <class name="tests.rawdata.RawDataStreamTabsTest"/>
+            <class name="tests.rawdata.ExportRawDataTest"/>
+            <class name="tests.rawdata.RawDataActionsTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Deal Credits Test">
+
+        <classes>
+
+            <class name="tests.dealcredits.SearchDealCreditsTest"/>
+            <class name="tests.dealcredits.ManageDealCreditsTest"/>
+            <class name="tests.dealcredits.ProcessDealCreditsTest"/>
+            <class name="tests.dealcredits.DealCreditsGridTest"/>
 
         </classes>
 
