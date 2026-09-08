@@ -42,6 +42,8 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("Data Streams", "DataStream");
         SHEET_MODULE.put("DataStreams", "DataStream");
         SHEET_MODULE.put("Data Stream", "DataStream");
+        SHEET_MODULE.put("Resources", "Resource");
+        SHEET_MODULE.put("Resource", "Resource");
     }
 
     /** Scenario tokens that have safe, read-only automation in TestCaseRegistry. */
@@ -276,6 +278,7 @@ public final class ExcelTestCaseReader {
             case "User": return System.getProperty("excel.user.search", "Mayank");
             case "Team": return System.getProperty("excel.team.search", "Sales");
             case "Department": return System.getProperty("excel.department.search", "Sales");
+            case "Resource": return System.getProperty("excel.resource.search", "abc");
             default: return "";
         }
     }

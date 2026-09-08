@@ -124,4 +124,22 @@
 
     </test>
 
+    <test name="Resources Test">
+
+        <classes>
+
+            <class name="tests.resources.SearchResourceTest"/>
+            <class name="tests.resources.ResourceValidationTest"/>
+            <class name="tests.resources.SortResourceTest"/>
+            <class name="tests.resources.ColumnFilterResourceTest"/>
+            <class name="tests.resources.ViewResourceTest"/>
+            <class name="tests.resources.CreateResourceTest"/>
+            <class name="tests.resources.EditResourceTest"/>
+            <class name="tests.resources.DeleteResourceTest"/>
+
+        </classes>
+
+    </test>
+
 </suite>
+
