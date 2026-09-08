@@ -67,4 +67,33 @@ public class RawDataActionsTest extends BaseTest {
             viewPage.close();
         }
     }
+
+    @Test
+    public void verifyRefreshColumnsModalCanBeCancelled() {
+        DashboardPage dashboard = new DashboardPage(DriverFactory.getDriver());
+        RawDataPage rawData = new RawDataPage(DriverFactory.getDriver());
+
+        dashboard.navigateToRawData();
+        Assert.assertTrue(rawData.isLoaded(), "Expected Raw Data page to load.");
+
+        if (rawData.isHeaderActionsPresent()) {
+            rawData.openHeaderActionsMenu();
+            if (rawData.isHeaderActionPresent("Refresh Columns")) {
+                rawData.clickHeaderAction("Refresh Columns");
+                Assert.assertTrue(rawData.isConfirmationModalOpen(),
+                        "Expected confirmation modal to open for Refresh Columns.");
+
+                String modalText = rawData.getConfirmationModalText();
+                Assert.assertTrue(modalText.toLowerCase().contains("refresh")
+                                || modalText.toLowerCase().contains("derived")
+                                || modalText.toLowerCase().contains("lookup")
+                                || modalText.toLowerCase().contains("sure"),
+                        "Expected modal prompt to ask for column refresh confirmation.");
+
+                rawData.cancelModal();
+                Assert.assertFalse(rawData.isConfirmationModalOpen(),
+                        "Expected confirmation modal to close on Cancel.");
+            }
+        }
+    }
 }

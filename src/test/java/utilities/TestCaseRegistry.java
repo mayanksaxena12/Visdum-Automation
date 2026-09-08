@@ -10,6 +10,10 @@ import Pages.DashboardPage;
 import Pages.DepartmentViewPage;
 import Pages.DepartmentsPage;
 import Pages.LoginPage;
+import Pages.ResourceDeleteModal;
+import Pages.ResourceFormModal;
+import Pages.ResourcePreviewModal;
+import Pages.ResourcesPage;
 import Pages.TeamViewPage;
 import Pages.TeamsPage;
 import Pages.UserViewPage;
@@ -254,6 +258,105 @@ public final class TestCaseRegistry {
             page.openEditStream(row.param1());
         });
 
+        // ---------------- Resource module ----------------
+        register("resource:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {}
+            }
+            if (term == null || term.isBlank()) {
+                term = "Test";
+            }
+            page.search(term);
+            Assert.assertTrue(page.isRowListed(term),
+                    "Expected a resource row to match '" + term + "'.");
+        });
+        register("resource:sort", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            String col = row.param1() == null || row.param1().isBlank() ? "name" : row.param1();
+            page.sortByColumn(col);
+            Assert.assertEquals(page.sortDirectionOf(col), "ascending",
+                    col + " should sort ascending.");
+        });
+        register("resource:columnfilter", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            String col = row.param1() == null || row.param1().isBlank() ? "name" : row.param1();
+            page.openColumnMenu(col);
+            Assert.assertTrue(page.isColumnMenuOpen(), "Column menu should open for " + col);
+            page.toggleFirstColumnFilterValue();
+            page.closeColumnMenu();
+        });
+        register("resource:view", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {}
+            }
+            if (term != null && !term.isBlank()) {
+                page.openView(term);
+                ResourcePreviewModal preview = new ResourcePreviewModal(driver);
+                Assert.assertTrue(preview.isPreviewOpen(), "Resource preview modal should open.");
+                preview.closePreview();
+            }
+        });
+        register("resource:create", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            new ResourcesPage(driver).openAddResource();
+            ResourceFormModal form = new ResourceFormModal(driver);
+            Assert.assertTrue(form.isModalOpen(), "Add Resource modal should open.");
+            form.cancel();
+        });
+        register("resource:edit", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {}
+            }
+            if (term != null && !term.isBlank()) {
+                page.openEditResource(term);
+                ResourceFormModal form = new ResourceFormModal(driver);
+                Assert.assertTrue(form.isModalOpen(), "Update Resource modal should open.");
+                form.cancel();
+            }
+        });
+        register("resource:delete", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {}
+            }
+            if (term != null && !term.isBlank()) {
+                page.openDeleteResource(term);
+                ResourceDeleteModal modal = new ResourceDeleteModal(driver);
+                Assert.assertTrue(modal.isDeleteModalOpen(), "Delete confirmation modal should open.");
+                modal.cancelDelete();
+            }
+        });
+        register("resource:validation", (driver, row) -> {
+            new DashboardPage(driver).navigateToResources();
+            ResourcesPage page = new ResourcesPage(driver);
+            page.openAddResource();
+            ResourceFormModal form = new ResourceFormModal(driver);
+            form.submit();
+            Assert.assertTrue(form.isValidationMessageVisible("Resource name is required."));
+            form.cancel();
+        });
+
         // ---------------- Login module (validation / error / redirect; no OTP needed) ----------------
         // These actions assume the driver is already on the login page (the Excel runner does NOT
         // pre-login for the Login module).
@@ -421,6 +524,9 @@ public final class TestCaseRegistry {
             } else if ("Department".equalsIgnoreCase(module)) {
                 new DashboardPage(driver).navigateToDepartments();
                 Assert.assertTrue(new DepartmentsPage(driver).isGridLoaded(), "Departments page grid should load for " + row.getTestCaseId());
+            } else if ("Resource".equalsIgnoreCase(module)) {
+                new DashboardPage(driver).navigateToResources();
+                Assert.assertTrue(new ResourcesPage(driver).isGridLoaded(), "Resources page grid should load for " + row.getTestCaseId());
             } else {
                 Assert.assertTrue(new LoginPage(driver).isLoaded(), "Login page should load for " + row.getTestCaseId());
             }

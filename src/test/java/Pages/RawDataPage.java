@@ -116,6 +116,12 @@ public class RawDataPage extends AgGridListPage {
         click(headerActionsBtn);
     }
 
+    public boolean isHeaderActionPresent(String actionName) {
+        By locator = By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and contains(normalize-space(), " + xpathLiteral(actionName) + ")]"
+                + " | //div[contains(@class,'dropdown-menu')]//*[contains(normalize-space(), " + xpathLiteral(actionName) + ")]");
+        return !driver.findElements(locator).isEmpty();
+    }
+
     public void clickHeaderAction(String actionName) {
         openHeaderActionsMenu();
         click(By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and contains(normalize-space(), " + xpathLiteral(actionName) + ")]"

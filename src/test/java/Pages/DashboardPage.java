@@ -113,6 +113,26 @@ public class DashboardPage {
         }
     }
 
+    // Settings / Resource Locators
+    private final By settingsLink = By.xpath("//a[@href='/settings']");
+    private final By resourceTab = By.xpath("//a[normalize-space()='Resource' or contains(@href,'Resource')]");
+
+    public void navigateToResources() {
+        isLoaded();
+        try {
+            driver.get(utilities.ConfigReader.get("url") + "/settings");
+            wait.until(ExpectedConditions.elementToBeClickable(resourceTab)).click();
+        } catch (Exception e) {
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(settingsLink)).click();
+                wait.until(ExpectedConditions.elementToBeClickable(resourceTab)).click();
+            } catch (Exception ex) {
+                driver.get(utilities.ConfigReader.get("url") + "/settings");
+            }
+        }
+    }
+
+
       /** True once the authenticated dashboard is reachable (sidebar toggle present). */
     public boolean isLoaded() {
         try {
