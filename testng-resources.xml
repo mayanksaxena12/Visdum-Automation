@@ -1,0 +1,21 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Resources Module Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Resources E2E Tests">
+        <classes>
+            <class name="tests.resources.SearchResourceTest"/>
+            <class name="tests.resources.ResourceValidationTest"/>
+            <class name="tests.resources.SortResourceTest"/>
+            <class name="tests.resources.ColumnFilterResourceTest"/>
+            <class name="tests.resources.ViewResourceTest"/>
+            <class name="tests.resources.CreateResourceTest"/>
+            <class name="tests.resources.EditResourceTest"/>
+            <class name="tests.resources.DeleteResourceTest"/>
+        </classes>
+    </test>
+
+</suite>
