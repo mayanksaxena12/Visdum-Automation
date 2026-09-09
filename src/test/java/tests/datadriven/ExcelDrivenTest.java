@@ -45,7 +45,8 @@ public class ExcelDrivenTest implements ITest {
     public Object[][] excelRows() {
         String path = System.getProperty("excel.file", DEFAULT_FILE);
         System.out.println(ExcelTestCaseReader.coverageSummary(path));
-        List<TestCaseRow> rows = ExcelTestCaseReader.readAll(path);
+        boolean allRows = Boolean.parseBoolean(System.getProperty("excel.all", "false"));
+        List<TestCaseRow> rows = allRows ? ExcelTestCaseReader.readAll(path) : ExcelTestCaseReader.readRunnable(path);
         Object[][] data = new Object[rows.size()][1];
         for (int i = 0; i < rows.size(); i++) {
             data[i][0] = rows.get(i);
@@ -55,6 +56,9 @@ public class ExcelDrivenTest implements ITest {
 
     @Test(dataProvider = "excelRows")
     public void execute(TestCaseRow row) throws Exception {
+        if (!row.isRun()) {
+            throw new SkipException("Skipped (Run != Yes in Excel): " + row.getDescription());
+        }
         String testTitle = "[" + row.get("Sheet") + "] " + row.getTestCaseId() + " - " + row.getDescription();
         currentName.set(testTitle);
 

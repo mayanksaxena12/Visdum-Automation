@@ -116,6 +116,24 @@ public class RawDataPage extends AgGridListPage {
         click(headerActionsBtn);
     }
 
+    public List<String> getHeaderActionNames() {
+        if (!isHeaderActionsMenuOpen()) {
+            openHeaderActionsMenu();
+        }
+        By itemsLocator = By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link')]"
+                + " | //div[contains(@class,'dropdown-menu')]//span[contains(@class,'menu-link')]");
+        return driver.findElements(itemsLocator).stream()
+                .map(WebElement::getText)
+                .map(String::trim)
+                .filter(t -> !t.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public boolean isHeaderActionsMenuOpen() {
+        By menuLocator = By.xpath("//div[@id='globalDropMenu'] | //div[contains(@class,'dropdown-menu') and contains(@class,'show')]");
+        return !driver.findElements(menuLocator).isEmpty() && driver.findElement(menuLocator).isDisplayed();
+    }
+
     public boolean isHeaderActionPresent(String actionName) {
         By locator = By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and contains(normalize-space(), " + xpathLiteral(actionName) + ")]"
                 + " | //div[contains(@class,'dropdown-menu')]//*[contains(normalize-space(), " + xpathLiteral(actionName) + ")]");
@@ -126,6 +144,28 @@ public class RawDataPage extends AgGridListPage {
         openHeaderActionsMenu();
         click(By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and contains(normalize-space(), " + xpathLiteral(actionName) + ")]"
                 + " | //div[contains(@class,'dropdown-menu')]//*[contains(normalize-space(), " + xpathLiteral(actionName) + ")]"));
+    }
+
+    public String getHeaderActionIconClass(String actionName) {
+        By iconLocator = By.xpath("//div[@id='globalDropMenu']//*[contains(normalize-space(), " + xpathLiteral(actionName) + ")]//i"
+                + " | //div[@id='globalDropMenu']//i[following-sibling::*[contains(normalize-space(), " + xpathLiteral(actionName) + ")]]");
+        try {
+            return driver.findElement(iconLocator).getAttribute("class");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public boolean isRefreshColumnsPresent() {
+        if (!isHeaderActionsPresent()) {
+            return false;
+        }
+        openHeaderActionsMenu();
+        return isHeaderActionPresent("Refresh Columns");
+    }
+
+    public void clickRefreshColumns() {
+        clickHeaderAction("Refresh Columns");
     }
 
     public boolean isFetchNewDataPresent() {
@@ -164,11 +204,48 @@ public class RawDataPage extends AgGridListPage {
         return text(modalPromptText);
     }
 
+    public boolean isConfirmationCancelButtonPresent() {
+        return !driver.findElements(modalCancelBtn).isEmpty();
+    }
+
+    public boolean isConfirmationSubmitButtonPresent() {
+        return !driver.findElements(modalSubmitBtn).isEmpty();
+    }
+
+    public boolean isConfirmationCancelButtonOutlineStyled() {
+        try {
+            WebElement btn = driver.findElement(modalCancelBtn);
+            String cls = btn.getAttribute("class");
+            return cls != null && (cls.contains("btn-outline") || cls.contains("btn-outline-primary"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isConfirmationSubmitButtonPrimaryStyled() {
+        try {
+            WebElement btn = driver.findElement(modalSubmitBtn);
+            String cls = btn.getAttribute("class");
+            return cls != null && cls.contains("btn-primary");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void closeConfirmationModalByHeaderClose() {
+        By closeBtn = By.xpath("//div[contains(@class,'modal-header')]//button[contains(@class,'btn-close') or @aria-label='Close']");
+        click(closeBtn);
+    }
+
     public void cancelModal() {
         click(modalCancelBtn);
     }
 
     public void confirmModal() {
         click(modalSubmitBtn);
+    }
+
+    public DealsModalPage getDealsModal() {
+        return new DealsModalPage(driver);
     }
 }

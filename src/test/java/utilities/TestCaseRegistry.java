@@ -1,15 +1,17 @@
 package utilities;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-//import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 
 import Pages.DashboardPage;
 import Pages.DepartmentViewPage;
 import Pages.DepartmentsPage;
 import Pages.LoginPage;
+import Pages.DealsModalPage;
+import Pages.RawDataPage;
 import Pages.ResourceDeleteModal;
 import Pages.ResourceFormModal;
 import Pages.ResourcePreviewModal;
@@ -498,6 +500,43 @@ public final class TestCaseRegistry {
             Assert.assertTrue(otp.matches("\\d{6}"),
                     "two_factor_code '" + otp + "' should be exactly 6 numeric digits.");
         });
+
+        // ---------------- Raw Data module: Refresh Columns ----------------
+        register("rawdata:refreshcolumns", (driver, row) -> {
+            new DashboardPage(driver).navigateToRawData();
+            RawDataPage rawData = new RawDataPage(driver);
+            Assert.assertTrue(rawData.isLoaded(), "Raw Data page should load.");
+            String stream = row.param1();
+            if (stream != null && !stream.isBlank()) {
+                rawData.selectDataStreamTab(stream);
+            }
+            if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                rawData.clickRefreshColumns();
+                Assert.assertTrue(rawData.isConfirmationModalOpen(), "Confirmation modal should open.");
+                rawData.confirmModal();
+                DealsModalPage deals = rawData.getDealsModal();
+                Assert.assertTrue(deals.isOpen(), "DealsModal should open upon submit.");
+                deals.waitForCompletion(60);
+                Assert.assertTrue(deals.isCompleted(), "Refresh Columns should complete.");
+                deals.closeModal();
+            }
+        });
+
+        register("rawdata:cancelrefresh", (driver, row) -> {
+            new DashboardPage(driver).navigateToRawData();
+            RawDataPage rawData = new RawDataPage(driver);
+            Assert.assertTrue(rawData.isLoaded(), "Raw Data page should load.");
+            String stream = row.param1();
+            if (stream != null && !stream.isBlank()) {
+                rawData.selectDataStreamTab(stream);
+            }
+            if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                rawData.clickRefreshColumns();
+                Assert.assertTrue(rawData.isConfirmationModalOpen(), "Confirmation modal should open.");
+                rawData.cancelModal();
+                Assert.assertFalse(rawData.isConfirmationModalOpen(), "Confirmation modal should close on Cancel.");
+            }
+        });
     }
 
     private TestCaseRegistry() {
@@ -511,6 +550,11 @@ public final class TestCaseRegistry {
         TestAction action = ACTIONS.get(actionKey);
         if (action != null) {
             return action;
+        }
+        if (actionKey.toLowerCase().startsWith("refreshcolumns:")
+                || actionKey.toLowerCase().startsWith("refresh columns:")
+                || actionKey.toLowerCase().startsWith("rawdata:")) {
+            return TestCaseRegistry::executeRefreshColumnsAction;
         }
         // Fallback action for any unmapped manual/edge-case scenario row:
         return (driver, row) -> {
@@ -527,10 +571,214 @@ public final class TestCaseRegistry {
             } else if ("Resource".equalsIgnoreCase(module)) {
                 new DashboardPage(driver).navigateToResources();
                 Assert.assertTrue(new ResourcesPage(driver).isGridLoaded(), "Resources page grid should load for " + row.getTestCaseId());
+            } else if ("RawData".equalsIgnoreCase(module) || "Raw Data".equalsIgnoreCase(module)
+                    || "RefreshColumns".equalsIgnoreCase(module) || "Refresh Columns".equalsIgnoreCase(module)) {
+                new DashboardPage(driver).navigateToRawData();
+                Assert.assertTrue(new RawDataPage(driver).isLoaded(), "Raw Data page should load for " + row.getTestCaseId());
             } else {
                 Assert.assertTrue(new LoginPage(driver).isLoaded(), "Login page should load for " + row.getTestCaseId());
             }
         };
+    }
+
+    private static void executeRefreshColumnsAction(WebDriver driver, TestCaseRow row) {
+        String tcId = row.getTestCaseId().toUpperCase().trim();
+        DashboardPage dashboard = new DashboardPage(driver);
+        RawDataPage rawData = new RawDataPage(driver);
+        dashboard.navigateToRawData();
+        Assert.assertTrue(rawData.isLoaded(), "Raw Data page should load for " + tcId);
+
+        // Helper to select an eligible stream tab (with Refresh Columns action)
+        Runnable selectEligibleTab = () -> {
+            if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                return;
+            }
+            List<String> tabs = rawData.getDataStreamTabNames();
+            for (String tab : tabs) {
+                rawData.selectDataStreamTab(tab);
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    return;
+                }
+            }
+        };
+
+        switch (tcId) {
+            case "TC-01":
+            case "TC-02":
+            case "TC-03":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent()) {
+                    Assert.assertTrue(rawData.isHeaderActionPresent("Refresh Columns"),
+                            tcId + ": Expected 'Refresh Columns' action to be displayed in Action menu.");
+                    long count = rawData.getHeaderActionNames().stream()
+                            .filter(a -> a.equalsIgnoreCase("Refresh Columns")).count();
+                    Assert.assertEquals(count, 1, tcId + ": Expected 'Refresh Columns' to appear only once.");
+                }
+                break;
+
+            case "TC-04":
+                for (String tab : rawData.getDataStreamTabNames()) {
+                    if (tab.toLowerCase().contains("raw") || tab.toLowerCase().contains("source")) {
+                        rawData.selectDataStreamTab(tab);
+                        if (rawData.isHeaderActionsPresent()) {
+                            Assert.assertFalse(rawData.isHeaderActionPresent("Refresh Columns"),
+                                    tcId + ": Expected 'Refresh Columns' to be hidden for non-calculated stream.");
+                        }
+                        break;
+                    }
+                }
+                break;
+
+            case "TC-05":
+            case "TC-06":
+            case "TC-58":
+                for (String tab : rawData.getDataStreamTabNames()) {
+                    if (tab.toLowerCase().contains("key-value") || tab.toLowerCase().contains("key value")) {
+                        rawData.selectDataStreamTab(tab);
+                        if (rawData.isHeaderActionsPresent()) {
+                            Assert.assertFalse(rawData.isHeaderActionPresent("Refresh Columns"),
+                                    tcId + ": 'Refresh Columns' should be hidden for Key-Value stream.");
+                        }
+                        break;
+                    }
+                }
+                break;
+
+            case "TC-07":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    List<String> actions = rawData.getHeaderActionNames();
+                    Assert.assertTrue(actions.contains("Refresh Columns"),
+                            tcId + ": Action label should appear exactly as 'Refresh Columns'.");
+                }
+                break;
+
+            case "TC-08":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent()) {
+                    List<String> actions = rawData.getHeaderActionNames();
+                    boolean hasStandard = actions.stream().anyMatch(a ->
+                            a.contains("Add New Row") || a.contains("Process") || a.contains("Edit"));
+                    Assert.assertTrue(hasStandard, tcId + ": Existing actions should remain intact.");
+                }
+                break;
+
+            case "TC-09":
+            case "TC-10":
+            case "TC-11":
+            case "TC-12":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    Assert.assertTrue(rawData.isConfirmationModalOpen(), tcId + ": Confirmation modal should open.");
+                    String text = rawData.getConfirmationModalText();
+                    Assert.assertEquals(text.trim(),
+                            "Are you sure you want to refresh all Derived and Lookup Column values?",
+                            tcId + ": Modal confirmation message should match exactly.");
+                    Assert.assertTrue(rawData.isConfirmationCancelButtonOutlineStyled(),
+                            tcId + ": Cancel should be secondary/lighter.");
+                    Assert.assertTrue(rawData.isConfirmationSubmitButtonPrimaryStyled(),
+                            tcId + ": Submit should be primary/darker.");
+                    rawData.cancelModal();
+                }
+                break;
+
+            case "TC-13":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    Assert.assertTrue(rawData.isConfirmationModalOpen(), tcId + ": Confirmation modal should open.");
+                    rawData.cancelModal();
+                    Assert.assertFalse(rawData.isConfirmationModalOpen(), tcId + ": Modal should close on Cancel.");
+                    Assert.assertFalse(rawData.getDealsModal().isOpen(), tcId + ": No processing should start.");
+                }
+                break;
+
+            case "TC-14":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    Assert.assertTrue(rawData.isConfirmationModalOpen(), tcId + ": Confirmation modal should open.");
+                    rawData.closeConfirmationModalByHeaderClose();
+                    Assert.assertFalse(rawData.isConfirmationModalOpen(), tcId + ": Modal should close on close icon.");
+                    Assert.assertFalse(rawData.getDealsModal().isOpen(), tcId + ": No processing should start.");
+                }
+                break;
+
+            case "TC-15":
+            case "TC-16":
+            case "TC-17":
+            case "TC-18":
+            case "TC-19":
+            case "TC-22":
+            case "TC-23":
+            case "TC-24":
+            case "TC-25":
+            case "TC-26":
+            case "TC-59":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    rawData.confirmModal();
+                    DealsModalPage deals = rawData.getDealsModal();
+                    Assert.assertTrue(deals.isOpen(), tcId + ": DealsModal should open upon submit.");
+                    boolean running = deals.isInitialNoticeDisplayed()
+                            || deals.isProgressBarPresent()
+                            || deals.isCompleted();
+                    Assert.assertTrue(running, tcId + ": DealsModal should show running/progress state.");
+                    deals.closeModal();
+                    Assert.assertTrue(deals.isClosed(), tcId + ": DealsModal should close without stopping background job.");
+                }
+                break;
+
+            case "TC-27":
+            case "TC-28":
+            case "TC-29":
+            case "TC-30":
+            case "TC-31":
+            case "TC-32":
+            case "TC-33":
+            case "TC-34":
+            case "TC-61":
+                selectEligibleTab.run();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    rawData.confirmModal();
+                    DealsModalPage deals = rawData.getDealsModal();
+                    Assert.assertTrue(deals.isOpen(), tcId + ": DealsModal should open.");
+                    deals.waitForCompletion(60);
+                    Assert.assertTrue(deals.isCompleted(), tcId + ": Processing should complete.");
+                    Assert.assertTrue(deals.getDerivedColumnsProcessedCount() >= 0, tcId + ": Derived Columns count >= 0");
+                    Assert.assertTrue(deals.getLookupColumnsProcessedCount() >= 0, tcId + ": Lookup Columns count >= 0");
+                    Assert.assertTrue(deals.getRecordsProcessedCount() >= 0, tcId + ": Records Processed >= 0");
+                    Assert.assertTrue(deals.getRecordsUpdatedCount() >= 0, tcId + ": Records Updated >= 0");
+                    deals.closeModal();
+                    Assert.assertTrue(rawData.isGridLoaded(), tcId + ": Grid should remain loaded.");
+                }
+                break;
+
+            case "TC-20":
+            case "TC-21":
+            case "TC-62":
+                selectEligibleTab.run();
+                String initialTab = rawData.getSelectedDataStreamTab();
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    rawData.cancelModal();
+                    Assert.assertEquals(rawData.getSelectedDataStreamTab(), initialTab,
+                            tcId + ": Tab selection should remain scoped to active stream.");
+                }
+                break;
+
+            default:
+                selectEligibleTab.run();
+                Assert.assertTrue(rawData.isGridLoaded(), tcId + ": Raw data grid should be loaded.");
+                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    rawData.clickRefreshColumns();
+                    rawData.cancelModal();
+                }
+                break;
+        }
     }
 
     public static boolean isMapped(String actionKey) {

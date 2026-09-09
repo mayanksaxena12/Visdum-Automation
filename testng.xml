@@ -106,6 +106,7 @@
             <class name="tests.rawdata.RawDataStreamTabsTest"/>
             <class name="tests.rawdata.ExportRawDataTest"/>
             <class name="tests.rawdata.RawDataActionsTest"/>
+            <class name="tests.rawdata.RefreshColumnsTest"/>
 
         </classes>
 

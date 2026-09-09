@@ -44,6 +44,10 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("Data Stream", "DataStream");
         SHEET_MODULE.put("Resources", "Resource");
         SHEET_MODULE.put("Resource", "Resource");
+        SHEET_MODULE.put("Refresh Columns", "RefreshColumns");
+        SHEET_MODULE.put("RefreshColumns", "RefreshColumns");
+        SHEET_MODULE.put("Raw Data", "RawData");
+        SHEET_MODULE.put("RawData", "RawData");
     }
 
     /** Scenario tokens that have safe, read-only automation in TestCaseRegistry. */
@@ -62,8 +66,12 @@ public final class ExcelTestCaseReader {
         List<TestCaseRow> rows = new ArrayList<>();
         DataFormatter fmt = new DataFormatter();
         try (InputStream in = new FileInputStream(path); Workbook wb = new XSSFWorkbook(in)) {
+            String filterSheet = System.getProperty("excel.sheet", "").trim();
             for (Sheet sheet : wb) {
                 String sheetName = sheet.getSheetName();
+                if (!filterSheet.isEmpty() && !sheetName.equalsIgnoreCase(filterSheet)) {
+                    continue;
+                }
                 String module = SHEET_MODULE.getOrDefault(sheetName, sheetName);
                 int headerRowIdx = findHeaderRow(sheet, fmt);
                 if (headerRowIdx < 0) {
@@ -88,7 +96,12 @@ public final class ExcelTestCaseReader {
                     String testData = colVal(fmt, row, cols, "Test Data");
                     String runRaw = colVal(fmt, row, cols, "Run"); // optional column
 
-                    String scenarioToken = classify(module, scenarioText, description);
+                    String scenarioToken;
+                    if ("RefreshColumns".equalsIgnoreCase(module) || "Refresh Columns".equalsIgnoreCase(module)) {
+                        scenarioToken = tcId.toLowerCase();
+                    } else {
+                        scenarioToken = classify(module, scenarioText, description);
+                    }
                     boolean run = resolveRun(runRaw, module, scenarioToken);
 
                     Map<String, String> data = new LinkedHashMap<>();
