@@ -1,0 +1,24 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Departments Module Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Departments Module Tests">
+        <classes>
+            <class name="tests.departments.SearchDepartmentTest"/>
+            <class name="tests.departments.DepartmentValidationTest"/>
+            <class name="tests.departments.SortDepartmentTest"/>
+            <class name="tests.departments.ColumnFilterDepartmentTest"/>
+            <class name="tests.departments.ViewDepartmentTest"/>
+            <class name="tests.departments.CreateDepartmentTest"/>
+            <class name="tests.departments.EditDepartmentTest"/>
+            <class name="tests.departments.DuplicateDepartmentTest"/>
+            <class name="tests.departments.AddDepartmentMembersTest"/>
+            <class name="tests.departments.DeactivateDepartmentTest"/>
+            <class name="tests.departments.ActivateDepartmentTest"/>
+        </classes>
+    </test>
+
+</suite>

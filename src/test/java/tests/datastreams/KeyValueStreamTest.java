@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.CreateDataStreamPage;
 import Pages.DashboardPage;
@@ -16,7 +16,7 @@ import utilities.ExecutionGuard;
  * - Deal Credits and Fetch New Records options are hidden.
  * - Key-Value stream creation and draft saving functionality.
  */
-public class KeyValueStreamTest extends BaseTest {
+public class KeyValueStreamTest extends DataStreamsBaseTest {
 
     @Test
     public void verifyKeyValueStreamHidesExternalDataSources() {

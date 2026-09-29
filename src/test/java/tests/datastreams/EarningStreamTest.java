@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.CreateDataStreamPage;
 import Pages.DashboardPage;
@@ -13,7 +13,7 @@ import utilities.ExecutionGuard;
  * Tests for Earning type Data Streams across all three formats:
  * Connected Apps, Manual Sheets, and Base Views.
  */
-public class EarningStreamTest extends BaseTest {
+public class EarningStreamTest extends DataStreamsBaseTest {
 
     @Test
     public void createEarningStreamWithConnectedAppFormat() {

@@ -180,15 +180,34 @@ Read-only login validation/error flows — no OTP required (the OTP/2FA completi
 | Test | Covers |
 |---|---|
 | `SearchUserTest` | Search box |
-| `UserValidationTest` | Required-field validation on create |
+| `UserValidationTest` | Required-field, invalid email format, and password mismatch validation on create |
 | `SortUserTest` | Column header sort (ascending/descending) — **all 17 sortable columns**, data-driven |
 | `ColumnFilterUserTest` | AG-Grid's built-in per-column filter menu (the "☰" icon on hover) — **all 17 filterable columns**, data-driven |
 | `FilterUserTest` | The advanced "Filter" side drawer (funnel icon) |
 | `ViewUserTest` | Read-only "View" drawer |
 | `CreateUserTest` | 3-step Add New User flow |
 | `EditUserTest` | Editing an existing user's name |
-| `ChangeUserPasswordTest` | Change Password modal |
-| `DeactivateUserTest` | Deactivate confirmation modal + last-working-day picker |
+| `ChangeUserPasswordTest` | Change Password modal + non-destructive cancellation |
+| `DeactivateUserTest` | Deactivate confirmation modal + last-working-day picker + cancellation |
+| `FetchUsersTest` | "Fetch Users" table button and integration list flow |
+| `UserDataStreamTest` | "User Data Streams" header button, read-only stream view drawer, and wizard |
+
+### Data Streams module (`tests/datastreams`)
+Directly navigated via `DataStreamsBaseTest`. Covers all integration formats, AG-Grid operations, and multi-step wizard flows.
+| Test | Covers |
+|---|---|
+| `SearchDataStreamTest` | Search box, Active vs. Drafts tab switching, no-result handling |
+| `SortDataStreamTest` | Column header sort (ascending/descending) — **all 6 sortable columns**, data-driven |
+| `ColumnFilterDataStreamTest` | AG-Grid's built-in per-column Set Filter — **all 6 filterable columns**, data-driven |
+| `ViewDataStreamTest` | Read-only Data Stream view drawer |
+| `CreateDataStreamTest` | Multi-step wizard validation, Key-Value end-to-end, and save-to-draft flow |
+| `EditDataStreamTest` | Opening wizard in edit mode with populated existing stream details |
+| `StreamStatusTest` | Non-destructive cancellation of Deactivate and Delete Draft modals + state transitions |
+| `StreamHistoryTrackingTest` | "Set History Tracking" action drawer opening and closing |
+| `EarningStreamTest` | Earning type streams across Connected Apps, Upload Sheets, and Base Views |
+| `PayoutStreamTest` | Payout type streams across all 3 formats + Payout-specific business rules |
+| `ReferenceStreamTest` | Reference type streams across all 3 formats + Reference-specific business rules |
+| `KeyValueStreamTest` | Key-Value type streams (hiding external sources and deal credits) |
 
 ### Teams module (`tests/teams`)
 | Test | Covers |

@@ -1,0 +1,22 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Teams Module Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Teams Module Tests">
+        <classes>
+            <class name="tests.teams.SearchTeamTest"/>
+            <class name="tests.teams.TeamValidationTest"/>
+            <class name="tests.teams.SortTeamTest"/>
+            <class name="tests.teams.ColumnFilterTeamTest"/>
+            <class name="tests.teams.CreateTeamTest"/>
+            <class name="tests.teams.EditTeamTest"/>
+            <class name="tests.teams.AddTeamMembersTest"/>
+            <class name="tests.teams.DeactivateTeamTest"/>
+            <class name="tests.teams.ActivateTeamTest"/>
+        </classes>
+    </test>
+
+</suite>

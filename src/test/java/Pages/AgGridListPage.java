@@ -124,6 +124,11 @@ public abstract class AgGridListPage extends BasePage {
     }
 
     public boolean isGridLoaded() {
-        return !driver.findElements(By.cssSelector(".ag-root-wrapper, .ag-theme-alpine")).isEmpty();
+        try {
+            return wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.cssSelector(".ag-root-wrapper, .ag-theme-alpine, [role='grid']"))).isDisplayed();
+        } catch (Exception e) {
+            return !driver.findElements(By.cssSelector(".ag-root-wrapper, .ag-theme-alpine, [role='grid']")).isEmpty();
+        }
     }
 }

@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.CreateDataStreamPage;
 import Pages.DashboardPage;
@@ -13,7 +13,7 @@ import utilities.ExecutionGuard;
  * Tests for Data Stream creation wizard: validation rules, Key-Value end-to-end flow,
  * and saving streams as drafts.
  */
-public class CreateDataStreamTest extends BaseTest {
+public class CreateDataStreamTest extends DataStreamsBaseTest {
 
     @Test
     public void createDataStreamValidationEmptyName() {

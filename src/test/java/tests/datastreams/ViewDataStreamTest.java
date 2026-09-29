@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.DashboardPage;
 import Pages.DataStreamViewPage;
@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 /**
  * Tests for the read-only Data Stream View drawer (DataStreamView.tsx / _StreamDetailView.tsx).
  */
-public class ViewDataStreamTest extends BaseTest {
+public class ViewDataStreamTest extends DataStreamsBaseTest {
 
     private String resolveStreamName(DataStreamsPage dataStreams) {
         String name = System.getProperty("test.stream.existing", "");

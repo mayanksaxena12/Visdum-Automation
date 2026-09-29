@@ -43,5 +43,19 @@ public class DeactivateUserModal extends BasePage {
     public void submit() {
         click(submit);
     }
+
+    public void cancel() {
+        By cancelBtn = By.xpath("//div[contains(@class,'modal')]//button[normalize-space()='Cancel']");
+        click(cancelBtn);
+    }
+
+    public boolean isOpen() {
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(lastWorkingDay)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
+
 

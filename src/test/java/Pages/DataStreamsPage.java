@@ -126,4 +126,23 @@ public class DataStreamsPage extends AgGridListPage {
     public void cancelDeleteDraft() {
         click(modalCancelBtn);
     }
+
+    public void openSetHistoryTracking(String streamName) {
+        openAction(streamName, "Set History Tracking");
+    }
+
+    public boolean isHistoryTrackingDrawerOpen() {
+        try {
+            By header = By.xpath("//*[contains(@class,'card-title') or contains(@class,'drawer-title') or self::div or self::span][normalize-space()='History Tracking']");
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(header)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void closeHistoryTrackingDrawer() {
+        By closeBtn = By.xpath("//button[contains(@id,'_close')] | //div[contains(@class,'card-footer') or contains(@id,'_footer')]//div[normalize-space()='Back'] | //button[normalize-space()='Back'] | //button[normalize-space()='Cancel']");
+        click(closeBtn);
+    }
 }
+

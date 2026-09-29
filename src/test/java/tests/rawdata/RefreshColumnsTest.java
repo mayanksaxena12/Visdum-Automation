@@ -5,10 +5,14 @@ import Base.DriverFactory;
 import Pages.DashboardPage;
 import Pages.DealsModalPage;
 import Pages.RawDataPage;
+import Pages.LoginPage;
 import java.util.List;
+import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import utilities.ConfigReader;
 
 /**
  * Test suite for the "Refresh Columns" feature in Raw Data.
@@ -27,6 +31,19 @@ import org.testng.annotations.Test;
  * </ul>
  */
 public class RefreshColumnsTest extends BaseTest {
+
+    @BeforeMethod
+    @Override
+    public void setup() {
+        WebDriver driver = DriverFactory.getDriver();
+        driver.get(ConfigReader.get("url"));
+
+        LoginPage login = new LoginPage(driver);
+        login.login(ConfigReader.get("username"), ConfigReader.get("password"));
+
+        DashboardPage dashboard = new DashboardPage(driver);
+        dashboard.navigateToRawData();
+    }
 
     private RawDataPage navigateToRawDataPage() {
         DashboardPage dashboard = new DashboardPage(DriverFactory.getDriver());

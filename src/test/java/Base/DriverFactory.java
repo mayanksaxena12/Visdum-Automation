@@ -3,9 +3,11 @@ package Base;
 import java.time.Duration;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import utilities.ConfigReader;
 
 /**
  * Thread-safe WebDriver provider.
@@ -16,6 +18,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
  *
  * <p>WebDriverManager still resolves the matching driver binary automatically. The browser is
  * launched maximized with a bounded page-load timeout to avoid indefinite hangs on slow pages.
+ * Supports headless execution via `-Dheadless=true` or `headless=true` in `config.properties`.
  */
 public class DriverFactory {
 
@@ -29,9 +32,31 @@ public class DriverFactory {
         if (DRIVER.get() == null) {
             WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
-            options.addArguments("--start-maximized", "--remote-allow-origins=*");
+
+            String sysHeadless = System.getProperty("headless");
+            String configHeadless = ConfigReader.get("headless", "false");
+            boolean isHeadless = "true".equalsIgnoreCase(sysHeadless) || "true".equalsIgnoreCase(configHeadless);
+
+            if (isHeadless) {
+                System.out.println("[BROWSER] Starting Chrome in HEADLESS mode (background, no UI)...");
+                options.addArguments("--headless=new");
+                options.addArguments("--window-size=1920,1080");
+                options.addArguments("--disable-gpu");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
+            } else {
+                System.out.println("[BROWSER] Starting Chrome in NORMAL mode (visible UI window)...");
+                options.addArguments("--start-maximized");
+            }
+
+            options.addArguments("--remote-allow-origins=*");
             WebDriver driver = new ChromeDriver(options);
             driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+
+            if (isHeadless) {
+                driver.manage().window().setSize(new Dimension(1920, 1080));
+            }
+
             DRIVER.set(driver);
         }
         return DRIVER.get();

@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.CreateDataStreamPage;
 import Pages.DashboardPage;
@@ -14,7 +14,7 @@ import utilities.ExecutionGuard;
  * Connected Apps, Manual Sheets, and Base Views.
  * Also verifies Payout-specific business logic (e.g. Deal Credits radio is absent).
  */
-public class PayoutStreamTest extends BaseTest {
+public class PayoutStreamTest extends DataStreamsBaseTest {
 
     @Test
     public void createPayoutStreamWithConnectedAppFormat() {

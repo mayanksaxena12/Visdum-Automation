@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.CreateDataStreamPage;
 import Pages.DashboardPage;
@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 /**
  * Tests for editing data streams via the wizard (CreateStreamWrapper.tsx / _CreateStream.tsx).
  */
-public class EditDataStreamTest extends BaseTest {
+public class EditDataStreamTest extends DataStreamsBaseTest {
 
     private String resolveStreamName(DataStreamsPage dataStreams) {
         String name = System.getProperty("test.stream.existing", "");

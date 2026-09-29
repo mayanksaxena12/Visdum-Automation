@@ -37,6 +37,7 @@
             <class name="tests.employees.ChangeUserPasswordTest"/>
             <class name="tests.employees.DeactivateUserTest"/>
             <class name="tests.employees.FetchUsersTest"/>
+            <class name="tests.employees.UserDataStreamTest"/>
 
         </classes>
 
@@ -85,10 +86,13 @@
         <classes>
 
             <class name="tests.datastreams.SearchDataStreamTest"/>
+            <class name="tests.datastreams.SortDataStreamTest"/>
+            <class name="tests.datastreams.ColumnFilterDataStreamTest"/>
             <class name="tests.datastreams.ViewDataStreamTest"/>
             <class name="tests.datastreams.CreateDataStreamTest"/>
             <class name="tests.datastreams.EditDataStreamTest"/>
             <class name="tests.datastreams.StreamStatusTest"/>
+            <class name="tests.datastreams.StreamHistoryTrackingTest"/>
             <class name="tests.datastreams.EarningStreamTest"/>
             <class name="tests.datastreams.PayoutStreamTest"/>
             <class name="tests.datastreams.ReferenceStreamTest"/>
@@ -137,6 +141,40 @@
             <class name="tests.resources.CreateResourceTest"/>
             <class name="tests.resources.EditResourceTest"/>
             <class name="tests.resources.DeleteResourceTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Plans and Expression Builder Test">
+
+        <classes>
+
+            <class name="tests.plans.CreatePlanValidationTest"/>
+            <class name="tests.plans.CreatePlanWizardTest"/>
+            <class name="tests.plans.ExpressionBuilderTest"/>
+            <class name="tests.plans.PlanGridOperationsTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="Plan Assignment Test">
+
+        <classes>
+
+            <class name="tests.assignplans.AssignPlanValidationTest"/>
+            <class name="tests.assignplans.AssignPlanGridTest"/>
+
+        </classes>
+
+    </test>
+
+    <test name="E-Sign Test">
+
+        <classes>
+
+            <class name="tests.esign.EsignWorkflowTest"/>
 
         </classes>
 

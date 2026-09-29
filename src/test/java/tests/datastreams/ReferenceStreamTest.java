@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.CreateDataStreamPage;
 import Pages.DashboardPage;
@@ -14,7 +14,7 @@ import utilities.ExecutionGuard;
  * Connected Apps, Manual Sheets, and Base Views.
  * Also verifies Reference-specific business logic (e.g. Deal Credits radio is absent).
  */
-public class ReferenceStreamTest extends BaseTest {
+public class ReferenceStreamTest extends DataStreamsBaseTest {
 
     @Test
     public void createReferenceStreamWithConnectedAppFormat() {

@@ -1,13 +1,13 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.DashboardPage;
 import Pages.DataStreamsPage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class SearchDataStreamTest extends BaseTest {
+public class SearchDataStreamTest extends DataStreamsBaseTest {
 
     private String resolveStreamName(DataStreamsPage dataStreams) {
         String name = System.getProperty("test.stream.existing", "");

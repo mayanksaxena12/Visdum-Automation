@@ -41,12 +41,25 @@ public class ExcelDrivenTest implements ITest {
     private static final String DEFAULT_FILE = "src/test/resources/manual-testcases.xlsx";
     private final ThreadLocal<String> currentName = new ThreadLocal<>();
 
-    @DataProvider(name = "excelRows", parallel = true)
+    @DataProvider(name = "excelRows")
     public Object[][] excelRows() {
         String path = System.getProperty("excel.file", DEFAULT_FILE);
         System.out.println(ExcelTestCaseReader.coverageSummary(path));
         boolean allRows = Boolean.parseBoolean(System.getProperty("excel.all", "false"));
         List<TestCaseRow> rows = allRows ? ExcelTestCaseReader.readAll(path) : ExcelTestCaseReader.readRunnable(path);
+
+        if (rows.isEmpty()) {
+            String filterSheet = System.getProperty("excel.sheet", "").trim();
+            String msg = "No test cases marked with 'Run = Yes' found in Excel"
+                    + (filterSheet.isEmpty() ? "" : " sheet '" + filterSheet + "'")
+                    + " (" + path + "). To run tests, set 'Run' column to 'Yes' in Excel, or pass -Dexcel.force=true.";
+            System.out.println("[EXCEL RUNNER] " + msg);
+            java.util.Map<String, String> data = new java.util.LinkedHashMap<>();
+            data.put("Sheet", filterSheet.isEmpty() ? "All" : filterSheet);
+            TestCaseRow infoRow = new TestCaseRow("EXCEL-00", "Info", "info", msg, false, data);
+            return new Object[][] { { infoRow } };
+        }
+
         Object[][] data = new Object[rows.size()][1];
         for (int i = 0; i < rows.size(); i++) {
             data[i][0] = rows.get(i);

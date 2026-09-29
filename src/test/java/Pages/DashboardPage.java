@@ -40,36 +40,15 @@ public class DashboardPage {
             By.xpath("//a[contains(@href,'users/department')]");
 
     public void navigateToEmployees() {
-        isLoaded();
-        try {
-            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(usersMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(employeesMenu)).click();
-        } catch (Exception e) {
-            driver.get(utilities.ConfigReader.get("url") + "/users/employees");
-        }
+        driver.get(utilities.ConfigReader.get("url") + "/users/employees");
     }
 
     public void navigateToTeams() {
-        isLoaded();
-        try {
-            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(usersMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(teamsMenu)).click();
-        } catch (Exception e) {
-            driver.get(utilities.ConfigReader.get("url") + "/users/teams");
-        }
+        driver.get(utilities.ConfigReader.get("url") + "/users/teams");
     }
 
     public void navigateToDepartments() {
-        isLoaded();
-        try {
-            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(usersMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(departmentsMenu)).click();
-        } catch (Exception e) {
-            driver.get(utilities.ConfigReader.get("url") + "/users/department");
-        }
+        driver.get(utilities.ConfigReader.get("url") + "/users/department");
     }
 
     // Data Menu Locators
@@ -79,38 +58,27 @@ public class DashboardPage {
     By viewDataStreamsBtn = By.xpath("//button[normalize-space()='View']");
 
     public void navigateToDataStreams() {
-        isLoaded();
-        try {
-            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(dataMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(rawDataMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(viewDataStreamsBtn)).click();
-        } catch (Exception e) {
-            // Direct route navigation fallback
-            driver.get(utilities.ConfigReader.get("url") + "/data/data-streams");
-        }
+        driver.get(utilities.ConfigReader.get("url") + "/data/data-streams");
     }
 
     public void navigateToRawData() {
-        isLoaded();
-        try {
-            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(dataMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(rawDataMenu)).click();
-        } catch (Exception e) {
-            driver.get(utilities.ConfigReader.get("url") + "/data/raw-data");
-        }
+        driver.get(utilities.ConfigReader.get("url") + "/data/raw-data");
     }
 
     public void navigateToDealCredits() {
-        isLoaded();
-        try {
-            wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(dataMenu)).click();
-            wait.until(ExpectedConditions.elementToBeClickable(dealCreditsMenu)).click();
-        } catch (Exception e) {
-            driver.get(utilities.ConfigReader.get("url") + "/data/deal-credits");
-        }
+        driver.get(utilities.ConfigReader.get("url") + "/data/deal-credits");
+    }
+
+    public void navigateToPlans() {
+        driver.get(utilities.ConfigReader.get("url") + "/plans/create-plan");
+    }
+
+    public void navigateToAssignPlans() {
+        driver.get(utilities.ConfigReader.get("url") + "/plans/assign-plan");
+    }
+
+    public void navigateToEsign() {
+        driver.get(utilities.ConfigReader.get("url") + "/plans/e-sign");
     }
 
     // Settings / Resource Locators

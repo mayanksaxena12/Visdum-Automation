@@ -55,5 +55,19 @@ public class ChangePasswordModal extends BasePage {
     public boolean isClosed() {
         return wait.until(ExpectedConditions.invisibilityOfElementLocated(update));
     }
+
+    public void cancel() {
+        By cancelBtn = By.xpath("//div[contains(@class,'modal')]//button[normalize-space()='Cancel']");
+        click(cancelBtn);
+    }
+
+    public boolean isOpen() {
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(newPassword)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
+
 

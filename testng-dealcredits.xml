@@ -1,0 +1,17 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Deal Credits Module Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Deal Credits Module Tests">
+        <classes>
+            <class name="tests.dealcredits.SearchDealCreditsTest"/>
+            <class name="tests.dealcredits.ManageDealCreditsTest"/>
+            <class name="tests.dealcredits.ProcessDealCreditsTest"/>
+            <class name="tests.dealcredits.DealCreditsGridTest"/>
+        </classes>
+    </test>
+
+</suite>

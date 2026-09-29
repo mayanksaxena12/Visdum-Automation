@@ -1,0 +1,18 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Raw Data Module Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Raw Data Module Tests">
+        <classes>
+            <class name="tests.rawdata.SearchRawDataTest"/>
+            <class name="tests.rawdata.RawDataStreamTabsTest"/>
+            <class name="tests.rawdata.ExportRawDataTest"/>
+            <class name="tests.rawdata.RawDataActionsTest"/>
+            <class name="tests.rawdata.RefreshColumnsTest"/>
+        </classes>
+    </test>
+
+</suite>

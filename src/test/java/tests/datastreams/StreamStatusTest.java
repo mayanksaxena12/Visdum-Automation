@@ -1,6 +1,6 @@
 package tests.datastreams;
 
-import Base.BaseTest;
+import Base.DataStreamsBaseTest;
 import Base.DriverFactory;
 import Pages.DashboardPage;
 import Pages.DataStreamsPage;
@@ -12,7 +12,7 @@ import utilities.ExecutionGuard;
  * Tests for Data Stream status transitions (Activate, Deactivate, and Delete Draft).
  * Includes non-destructive modal cancellation tests and guarded state changes.
  */
-public class StreamStatusTest extends BaseTest {
+public class StreamStatusTest extends DataStreamsBaseTest {
 
     private String resolveStreamName(DataStreamsPage dataStreams) {
         String name = System.getProperty("test.stream.existing", "");

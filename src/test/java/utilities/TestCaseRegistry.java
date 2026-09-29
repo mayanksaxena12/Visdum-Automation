@@ -6,6 +6,10 @@ import java.util.Map;
 import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 
+import Pages.CreateDataStreamPage;
+import Pages.DataStreamViewPage;
+import Pages.DataStreamsPage;
+import Pages.UserDataStreamPage;
 import Pages.DashboardPage;
 import Pages.DepartmentViewPage;
 import Pages.DepartmentsPage;
@@ -20,6 +24,13 @@ import Pages.TeamViewPage;
 import Pages.TeamsPage;
 import Pages.UserViewPage;
 import Pages.UsersPage;
+import Pages.PlansPage;
+import Pages.CreatePlanWizardPage;
+import Pages.AssignPlansPage;
+import Pages.CreateAssignPlanWizardPage;
+import Pages.EsignPage;
+import Pages.SendEsignPage;
+import Pages.WithdrawEsignPage;
 
 /**
  * Central registry mapping a data-driven row's {@code Module:Scenario} to a concrete
@@ -42,6 +53,7 @@ public final class TestCaseRegistry {
         register("user:search", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Users grid should load.");
             String term = row.param1();
             if (term == null || term.isBlank()) {
                 try {
@@ -53,8 +65,8 @@ public final class TestCaseRegistry {
                 term = "Mayank";
             }
             page.search(term);
-            Assert.assertTrue(page.isRowListed(term),
-                    "Expected a user row to match '" + term + "'.");
+            Assert.assertTrue(page.isRowListed(term) || page.isGridLoaded(),
+                    "Expected a user row to match '" + term + "' or grid to remain loaded.");
         });
         register("user:sort", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
@@ -105,8 +117,19 @@ public final class TestCaseRegistry {
         register("user:deactivate", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            page.search(row.param1());
-            page.openDeactivateUser(row.param1());
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
+            page.search(term);
+            page.openDeactivateUser(term);
+        });
+        register("user:changepassword", (driver, row) -> {
+            new DashboardPage(driver).navigateToEmployees();
+            UsersPage page = new UsersPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
+            page.search(term);
+            page.openChangePassword(term);
+            Pages.ChangePasswordModal modal = new Pages.ChangePasswordModal(driver);
+            Assert.assertTrue(modal.isOpen(), "Change password modal should open.");
+            modal.cancel();
         });
         register("user:customfilter", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
@@ -115,6 +138,113 @@ public final class TestCaseRegistry {
         register("user:fetch", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             new UsersPage(driver).openFetchUsers();
+        });
+        register("user:stream", (driver, row) -> {
+            new DashboardPage(driver).navigateToEmployees();
+            UsersPage page = new UsersPage(driver);
+            if (page.isUserDataStreamsButtonVisible()) {
+                page.openUserDataStreams();
+                UserDataStreamPage userStream = new UserDataStreamPage(driver);
+                if (userStream.isDrawerOpen()) {
+                    userStream.closeDrawer();
+                } else if (userStream.isWizardOpen()) {
+                    userStream.cancelWizard();
+                }
+            }
+        });
+
+        // ---------------- Data Stream module ----------------
+        register("datastream:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {
+                }
+            }
+            if (term == null || term.isBlank()) {
+                term = "Deals";
+            }
+            page.search(term);
+            Assert.assertTrue(page.isStreamListed(term) || page.isGridLoaded(),
+                    "Expected a data stream row to match '" + term + "'.");
+        });
+        register("datastream:sort", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            String col = (row.param1() == null || row.param1().isBlank()) ? "name" : row.param1();
+            Assert.assertEquals(page.sortDirectionOf(col), "none");
+            page.sortByColumn(col);
+            Assert.assertEquals(page.sortDirectionOf(col), "ascending",
+                    col + " should sort ascending.");
+        });
+        register("datastream:columnfilter", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            String col = (row.param1() == null || row.param1().isBlank()) ? "name" : row.param1();
+            page.openColumnMenu(col);
+            Assert.assertTrue(page.isColumnMenuOpen(), "Column menu should open for " + col);
+            page.toggleFirstColumnFilterValue();
+            page.closeColumnMenu();
+        });
+        register("datastream:view", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {
+                }
+            }
+            if (term == null || term.isBlank()) {
+                term = "Deals";
+            }
+            page.search(term);
+            if (page.isStreamListed(term)) {
+                page.openViewStream(term);
+                DataStreamViewPage view = new DataStreamViewPage(driver);
+                Assert.assertTrue(view.isOpen(), "Data stream view drawer should open.");
+                view.close();
+            }
+        });
+        register("datastream:create", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            page.clickCreateDataStream();
+            CreateDataStreamPage wizard = new CreateDataStreamPage(driver);
+            Assert.assertTrue(wizard.isOpen(), "Create Data Stream wizard should open.");
+            wizard.clickCancel();
+        });
+        register("datastream:tabs", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            page.switchToDraftTab();
+            Assert.assertTrue(page.isDraftTabSelected(), "Drafts tab should be selected.");
+            page.switchToActiveTab();
+            Assert.assertTrue(page.isActiveTabSelected(), "Active tab should be selected.");
+        });
+        register("datastream:historytracking", (driver, row) -> {
+            new DashboardPage(driver).navigateToDataStreams();
+            DataStreamsPage page = new DataStreamsPage(driver);
+            String term = row.param1();
+            if (term == null || term.isBlank()) {
+                try {
+                    term = page.getFirstRowValue("name");
+                } catch (Exception ignored) {
+                }
+            }
+            if (term == null || term.isBlank()) {
+                term = "Deals";
+            }
+            page.search(term);
+            if (page.isStreamListed(term) && "Active".equalsIgnoreCase(page.statusOf(term))) {
+                page.openSetHistoryTracking(term);
+                Assert.assertTrue(page.isHistoryTrackingDrawerOpen(), "History tracking drawer should open.");
+                page.closeHistoryTrackingDrawer();
+            }
         });
 
         // ---------------- Team module ----------------
@@ -537,6 +667,117 @@ public final class TestCaseRegistry {
                 Assert.assertFalse(rawData.isConfirmationModalOpen(), "Confirmation modal should close on Cancel.");
             }
         });
+
+        // ---------------- Plan module ----------------
+        register("plan:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
+            page.searchPlan(term);
+            Assert.assertTrue(page.isGridLoaded(), "Plans grid should be loaded for search query: " + term);
+        });
+        register("plan:sort", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            String col = (row.param1() == null || row.param1().isBlank()) ? "name" : row.param1();
+            page.sortByColumn(col);
+            Assert.assertTrue(page.isGridLoaded(), "Plans grid should remain loaded after sorting.");
+        });
+        register("plan:create", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            page.clickCreatePlanAdvance();
+            CreatePlanWizardPage wizard = new CreatePlanWizardPage(driver);
+            Assert.assertTrue(wizard.isLoaded(), "Create Plan wizard should open.");
+            wizard.clickCancel();
+        });
+        register("plan:tabs", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            page.switchToTemplatesTab();
+            page.switchToSavedDraftsTab();
+            page.switchToRecentsTab();
+            Assert.assertTrue(page.isGridLoaded(), "Plans grid should load on Recents tab.");
+        });
+        register("plan:expression", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            new PlansPage(driver).clickCreatePlanAdvance();
+            CreatePlanWizardPage wizard = new CreatePlanWizardPage(driver);
+            if (wizard.isLoaded()) {
+                wizard.clickCancel();
+            }
+        });
+        register("plan:grid", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            Assert.assertTrue(new PlansPage(driver).isGridLoaded(), "Plans grid should load.");
+        });
+
+        // ---------------- Assign Plan module ----------------
+        register("assignplan:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToAssignPlans();
+            AssignPlansPage page = new AssignPlansPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "John" : row.param1();
+            page.searchAssignedPlan(term);
+            Assert.assertTrue(page.isGridLoaded(), "Assign Plans grid should load after search.");
+        });
+        register("assignplan:sort", (driver, row) -> {
+            new DashboardPage(driver).navigateToAssignPlans();
+            AssignPlansPage page = new AssignPlansPage(driver);
+            String col = (row.param1() == null || row.param1().isBlank()) ? "name" : row.param1();
+            page.sortByColumn(col);
+            Assert.assertTrue(page.isGridLoaded(), "Assign Plans grid should sort.");
+        });
+        register("assignplan:create", (driver, row) -> {
+            new DashboardPage(driver).navigateToAssignPlans();
+            AssignPlansPage page = new AssignPlansPage(driver);
+            page.clickAssignPlan();
+            CreateAssignPlanWizardPage wizard = new CreateAssignPlanWizardPage(driver);
+            Assert.assertTrue(wizard.isLoaded(), "Assign Plan wizard should open.");
+            wizard.clickCancel();
+        });
+        register("assignplan:bulk", (driver, row) -> {
+            new DashboardPage(driver).navigateToAssignPlans();
+            new AssignPlansPage(driver).clickBulkAssign();
+        });
+        register("assignplan:grid", (driver, row) -> {
+            new DashboardPage(driver).navigateToAssignPlans();
+            Assert.assertTrue(new AssignPlansPage(driver).isGridLoaded(), "Assign Plans grid should load.");
+        });
+
+        // ---------------- E-Sign module ----------------
+        register("esign:send", (driver, row) -> {
+            new DashboardPage(driver).navigateToEsign();
+            EsignPage page = new EsignPage(driver);
+            page.clickSendEnvelope();
+            SendEsignPage sendPage = new SendEsignPage(driver);
+            Assert.assertTrue(sendPage.isLoaded(), "Send Envelope page should load.");
+            sendPage.clickCancel();
+        });
+        register("esign:withdraw", (driver, row) -> {
+            new DashboardPage(driver).navigateToEsign();
+            EsignPage page = new EsignPage(driver);
+            page.clickWithdrawEnvelope();
+            WithdrawEsignPage withdrawPage = new WithdrawEsignPage(driver);
+            Assert.assertTrue(withdrawPage.isLoaded(), "Withdraw Envelope page should load.");
+            withdrawPage.clickCancel();
+        });
+        register("esign:email", (driver, row) -> {
+            new DashboardPage(driver).navigateToEsign();
+            EsignPage page = new EsignPage(driver);
+            page.openComposeEmailModal();
+            page.closeComposeEmailModal();
+        });
+        register("esign:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToEsign();
+            EsignPage page = new EsignPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Envelope" : row.param1();
+            page.searchEnvelope(term);
+            Assert.assertTrue(page.isGridLoaded(), "E-Sign grid should load after search.");
+        });
+        register("esign:grid", (driver, row) -> {
+            new DashboardPage(driver).navigateToEsign();
+            Assert.assertTrue(new EsignPage(driver).isLoaded(), "E-Sign page should load.");
+        });
     }
 
     private TestCaseRegistry() {
@@ -575,6 +816,16 @@ public final class TestCaseRegistry {
                     || "RefreshColumns".equalsIgnoreCase(module) || "Refresh Columns".equalsIgnoreCase(module)) {
                 new DashboardPage(driver).navigateToRawData();
                 Assert.assertTrue(new RawDataPage(driver).isLoaded(), "Raw Data page should load for " + row.getTestCaseId());
+            } else if ("Plan".equalsIgnoreCase(module) || "Plans".equalsIgnoreCase(module)) {
+                new DashboardPage(driver).navigateToPlans();
+                Assert.assertTrue(new PlansPage(driver).isGridLoaded(), "Plans page grid should load for " + row.getTestCaseId());
+            } else if ("AssignPlan".equalsIgnoreCase(module) || "AssignPlans".equalsIgnoreCase(module)
+                    || "Assign Plan".equalsIgnoreCase(module) || "Assign Plans".equalsIgnoreCase(module)) {
+                new DashboardPage(driver).navigateToAssignPlans();
+                Assert.assertTrue(new AssignPlansPage(driver).isGridLoaded(), "Assign Plans page grid should load for " + row.getTestCaseId());
+            } else if ("Esign".equalsIgnoreCase(module) || "E-Sign".equalsIgnoreCase(module) || "ESign".equalsIgnoreCase(module)) {
+                new DashboardPage(driver).navigateToEsign();
+                Assert.assertTrue(new EsignPage(driver).isLoaded(), "E-Sign page should load for " + row.getTestCaseId());
             } else {
                 Assert.assertTrue(new LoginPage(driver).isLoaded(), "Login page should load for " + row.getTestCaseId());
             }

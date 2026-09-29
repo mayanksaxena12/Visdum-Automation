@@ -206,4 +206,50 @@ public class CreateDataStreamPage extends BasePage {
     public boolean isFieldErrorVisible(String text) {
         return !driver.findElements(By.xpath("//*[contains(@class,'fv-help-block') or contains(@class,'invalid-feedback') or contains(@class,'text-danger')][contains(text()," + xpathLiteral(text) + ")]")).isEmpty();
     }
+
+    public boolean isDataMappingStepVisible() {
+        try {
+            By locator = By.xpath("//*[contains(@class,'step-title') or contains(@class,'card-title') or self::h2 or self::h3 or self::div][contains(normalize-space(),'Data Mapping')]");
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isDefineCriteriaStepVisible() {
+        try {
+            By locator = By.xpath("//*[contains(@class,'step-title') or contains(@class,'card-title') or self::h2 or self::h3 or self::div][contains(normalize-space(),'Define Criteria')]");
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isStreamSchedulingStepVisible() {
+        try {
+            By locator = By.xpath("//*[contains(@class,'step-title') or contains(@class,'card-title') or self::h2 or self::h3 or self::div][contains(normalize-space(),'Stream Scheduling')]");
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isDealCreditsStepVisible() {
+        try {
+            By locator = By.xpath("//*[contains(@class,'step-title') or contains(@class,'card-title') or self::h2 or self::h3 or self::div][contains(normalize-space(),'Deal Credits')]");
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isReviewStepVisible() {
+        try {
+            By locator = By.xpath("//*[contains(@class,'step-title') or contains(@class,'card-title') or self::h2 or self::h3 or self::div][contains(normalize-space(),'Review')]");
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
+

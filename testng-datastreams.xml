@@ -1,0 +1,25 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Data Streams Module Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Data Streams Module Tests">
+        <classes>
+            <class name="tests.datastreams.SearchDataStreamTest"/>
+            <class name="tests.datastreams.SortDataStreamTest"/>
+            <class name="tests.datastreams.ColumnFilterDataStreamTest"/>
+            <class name="tests.datastreams.ViewDataStreamTest"/>
+            <class name="tests.datastreams.CreateDataStreamTest"/>
+            <class name="tests.datastreams.EditDataStreamTest"/>
+            <class name="tests.datastreams.StreamStatusTest"/>
+            <class name="tests.datastreams.StreamHistoryTrackingTest"/>
+            <class name="tests.datastreams.EarningStreamTest"/>
+            <class name="tests.datastreams.PayoutStreamTest"/>
+            <class name="tests.datastreams.ReferenceStreamTest"/>
+            <class name="tests.datastreams.KeyValueStreamTest"/>
+        </classes>
+    </test>
+
+</suite>

@@ -61,6 +61,10 @@ public class TestCaseRow {
         return get("Param2");
     }
 
+    public Map<String, String> getData() {
+        return data;
+    }
+
     @Override
     public String toString() {
         return testCaseId + " [" + module + ":" + scenario + "] " + description;

@@ -26,12 +26,16 @@ public class ConfigReader {
     }
 
     public static String get(String key) {
-
+        if (properties == null) {
+            return null;
+        }
         return properties.getProperty(key);
     }
 
     public static String get(String key, String defaultValue) {
- 
+        if (properties == null) {
+            return defaultValue;
+        }
         String value = properties.getProperty(key);
         return (value == null || value.trim().isEmpty()) ? defaultValue : value.trim();
     }

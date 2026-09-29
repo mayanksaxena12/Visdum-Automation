@@ -7,6 +7,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 
 import java.util.List;
+import java.time.Duration;
 
 /**
  * Login page (app/modules/auth/components/Login.tsx).
@@ -21,9 +22,9 @@ public class LoginPage extends BasePage {
     private final By email = By.name("email");
     private final By password = By.name("password");
     private final By loginBtn = By.id("dc_sign_in_submit");
-    private final By twoFactorHeading = By.xpath("//h1[normalize-space()='2-step verification']");
-    private final By otpInput = By.cssSelector("input[inputmode='numeric']");
-    private final By verifyBtn = By.xpath("//button[normalize-space()='Verify']");
+    private final By twoFactorHeading = By.xpath("//h1[contains(.,'2-step verification')] | //*[@id='kt_sing_in_two_factor_form']");
+    private final By otpInput = By.cssSelector("#kt_sing_in_two_factor_form input[type='text'], #kt_sing_in_two_factor_form input:not([type='checkbox']), input[inputmode='numeric']");
+    private final By verifyBtn = By.xpath("//button[@id='kt_sing_in_two_factor_submit' or normalize-space()='Verify']");
 
     public LoginPage(WebDriver driver) {
         super(driver);
@@ -36,6 +37,22 @@ public class LoginPage extends BasePage {
         click(loginBtn);
         try {
             wait.until(ExpectedConditions.invisibilityOfElementLocated(loginBtn));
+        } catch (Exception ignored) {
+        }
+        try {
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.visibilityOfElementLocated(twoFactorHeading));
+            System.out.println("[AUTH] 2-Step Verification screen detected. Fetching OTP from DB...");
+            String otp = utilities.OtpDbReader.latestOtp();
+            System.out.println("[AUTH] Latest OTP from DB: " + otp);
+            enterOtp(otp);
+            clickVerify();
+            try {
+                new org.openqa.selenium.support.ui.WebDriverWait(driver, Duration.ofSeconds(10))
+                        .until(ExpectedConditions.invisibilityOfElementLocated(twoFactorHeading));
+            } catch (Exception ignored) {
+            }
+            System.out.println("[AUTH] Logged in successfully.");
         } catch (Exception ignored) {
         }
     }
@@ -68,13 +85,14 @@ public class LoginPage extends BasePage {
 
     /** Enters the given code into the six OTP digit boxes (one digit per box). */
     public void enterOtp(String code) {
-        wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(otpInput));
+        wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(otpInput));
         List<WebElement> boxes = driver.findElements(otpInput);
         if (boxes.size() < 6) {
             throw new IllegalStateException(
                     "Expected at least 6 OTP digit inputs, found " + boxes.size());
         }
         for (int i = 0; i < 6 && i < code.length(); i++) {
+            boxes.get(i).clear();
             boxes.get(i).sendKeys(String.valueOf(code.charAt(i)));
         }
     }

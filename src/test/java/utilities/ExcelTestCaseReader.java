@@ -38,7 +38,9 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("Login", "Login");        // manual (login/OTP/SSO not auto-driven)
         SHEET_MODULE.put("Users", "User");
         SHEET_MODULE.put("Team", "Team");
+        SHEET_MODULE.put("Teams", "Team");
         SHEET_MODULE.put("Departments", "Department");
+        SHEET_MODULE.put("Department", "Department");
         SHEET_MODULE.put("Data Streams", "DataStream");
         SHEET_MODULE.put("DataStreams", "DataStream");
         SHEET_MODULE.put("Data Stream", "DataStream");
@@ -48,18 +50,45 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("RefreshColumns", "RefreshColumns");
         SHEET_MODULE.put("Raw Data", "RawData");
         SHEET_MODULE.put("RawData", "RawData");
+        SHEET_MODULE.put("Plans", "Plan");
+        SHEET_MODULE.put("Plan", "Plan");
+        SHEET_MODULE.put("Assign Plans", "AssignPlan");
+        SHEET_MODULE.put("AssignPlans", "AssignPlan");
+        SHEET_MODULE.put("Assign Plan", "AssignPlan");
+        SHEET_MODULE.put("E-Sign", "Esign");
+        SHEET_MODULE.put("ESign", "Esign");
+        SHEET_MODULE.put("Esign", "Esign");
     }
 
     /** Scenario tokens that have safe, read-only automation in TestCaseRegistry. */
     private static final List<String> AUTO_SCENARIOS = List.of(
             "search", "sort", "columnfilter", "view",
+            "create", "edit", "deactivate", "changepassword", "customfilter", "fetch",
             "validlogin", "invalidpassword", "invalidemail", "emptyfields",
-            // "emailonly", "passwordonly", "emailformat", "emaillength", "passwordlength");
             "emailonly", "passwordonly", "emailformat", "emaillength", "passwordlength",
             "otpsent", "otp", "wrongotp", "emptyotp", "shortotp", "alphaotp",
-            "pasteotp", "otpformat");
+            "pasteotp", "otpformat", "tabs", "historytracking", "stream");
 
     private ExcelTestCaseReader() {
+    }
+
+    public static boolean matchesSheet(String sheetName, String filter) {
+        if (filter == null || filter.isBlank()) {
+            return true;
+        }
+        String s = sheetName.trim().toLowerCase().replaceAll("[\\s_-]", "");
+        String f = filter.trim().toLowerCase().replaceAll("[\\s_-]", "");
+        if (s.equals(f) || s.startsWith(f) || f.startsWith(s)) {
+            return true;
+        }
+        if ((f.equals("user") || f.equals("employee") || f.equals("employees")) && s.equals("users")) return true;
+        if ((f.equals("team") || f.equals("teams")) && (s.equals("team") || s.equals("teams"))) return true;
+        if ((f.equals("department") || f.equals("departments") || f.equals("dept")) && (s.equals("departments") || s.equals("department"))) return true;
+        if ((f.equals("rawdata") || f.equals("refreshcolumns") || f.equals("refresh")) && (s.equals("refreshcolumns") || s.equals("rawdata"))) return true;
+        if ((f.equals("plan") || f.equals("plans")) && (s.equals("plan") || s.equals("plans"))) return true;
+        if ((f.equals("assignplan") || f.equals("assignplans") || f.equals("assign")) && (s.equals("assignplan") || s.equals("assignplans") || s.equals("plans"))) return true;
+        if ((f.equals("esign") || f.equals("e-sign")) && (s.equals("esign") || s.equals("e-sign"))) return true;
+        return false;
     }
 
     public static List<TestCaseRow> readAll(String path) {
@@ -69,7 +98,7 @@ public final class ExcelTestCaseReader {
             String filterSheet = System.getProperty("excel.sheet", "").trim();
             for (Sheet sheet : wb) {
                 String sheetName = sheet.getSheetName();
-                if (!filterSheet.isEmpty() && !sheetName.equalsIgnoreCase(filterSheet)) {
+                if (!filterSheet.isEmpty() && !matchesSheet(sheetName, filterSheet)) {
                     continue;
                 }
                 String module = SHEET_MODULE.getOrDefault(sheetName, sheetName);
@@ -194,11 +223,17 @@ public final class ExcelTestCaseReader {
             }
             return "manual"; // OTP / 2FA / resend / timer / forgot-password / SSO / profile
         }
+        if (t.contains("expression") || t.contains("formula")) return "expression";
+        if (t.contains("send envelope") || t.contains("send esign")) return "send";
+        if (t.contains("withdraw")) return "withdraw";
+        if (t.contains("compose email") || t.contains("email template")) return "email";
+        if (t.contains("bulk assign") || t.contains("bulk")) return "bulk";
         if (t.contains("add member")) return "addmembers";
-        if (t.contains("create") || t.contains("add new")) return "create";
+        if (t.contains("change password") || t.contains("password modal")) return "changepassword";
+        if (t.contains("deactivate") || t.contains("inactivate")) return "deactivate";
+        if (t.contains("create") || t.contains("add new") || t.contains("wizard") || t.contains("add plan") || t.contains("assign plan")) return "create";
         if (t.contains("edit")) return "edit";
-        if (t.contains("activate") && !t.contains("deactivate")) return "activate";
-        if (t.contains("deactivate")) return "deactivate";
+        if (t.contains("activate")) return "activate";
         if (t.contains("custom filter")) return "customfilter";
         if (t.contains("sort")) return "sort";
         if (t.contains("filter")) return "columnfilter";
@@ -273,16 +308,34 @@ public final class ExcelTestCaseReader {
     }
 
     private static boolean resolveRun(String runRaw, String module, String scenarioToken) {
+        boolean forceAll = Boolean.parseBoolean(System.getProperty("excel.force", "false"))
+                || Boolean.parseBoolean(System.getProperty("excel.run.all", "false"));
+        if (forceAll) {
+            String key = (module + ":" + scenarioToken).trim().toLowerCase();
+            return TestCaseRegistry.isMapped(key);
+        }
+
         String r = runRaw.trim().toLowerCase();
         if (!r.isEmpty()) {
             return r.equals("yes") || r.equals("y") || r.equals("true") || r.equals("1");
         }
-        // No explicit Run column: default to running any row that has a registered automation.
+        // No explicit Run column or blank cell: default to running any row that has a registered automation
         String key = (module + ":" + scenarioToken).trim().toLowerCase();
         return TestCaseRegistry.isMapped(key);
     }
 
     private static String defaultParam(String module, String scenarioToken, String testData) {
+        if (testData != null && !testData.isBlank() && !testData.equalsIgnoreCase("N/A")) {
+            String td = testData.trim();
+            if (td.toLowerCase().startsWith("name:")) {
+                String val = td.substring(5).trim();
+                if (!val.isBlank() && !val.contains("\n")) {
+                    return val;
+                }
+            } else if (!td.contains("\n") && !td.contains("(") && td.length() < 30) {
+                return td;
+            }
+        }
         if (scenarioToken.equals("sort") || scenarioToken.equals("columnfilter")) {
             return "name"; // primary sortable/filterable column in every module grid
         }
@@ -291,7 +344,11 @@ public final class ExcelTestCaseReader {
             case "User": return System.getProperty("excel.user.search", "Mayank");
             case "Team": return System.getProperty("excel.team.search", "Sales");
             case "Department": return System.getProperty("excel.department.search", "Sales");
+            case "DataStream": return System.getProperty("excel.datastream.search", "Deals");
             case "Resource": return System.getProperty("excel.resource.search", "abc");
+            case "Plan": return System.getProperty("excel.plan.search", "Plan");
+            case "AssignPlan": return System.getProperty("excel.assignplan.search", "John");
+            case "Esign": return System.getProperty("excel.esign.search", "Envelope");
             default: return "";
         }
     }
