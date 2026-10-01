@@ -52,6 +52,12 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("RawData", "RawData");
         SHEET_MODULE.put("Plans", "Plan");
         SHEET_MODULE.put("Plan", "Plan");
+        SHEET_MODULE.put("Create Plan", "Plan");
+        SHEET_MODULE.put("CreatePlan", "Plan");
+        SHEET_MODULE.put("Rate Table", "RateTable");
+        SHEET_MODULE.put("RateTable", "RateTable");
+        SHEET_MODULE.put("Rate Tables", "RateTable");
+        SHEET_MODULE.put("RateTables", "RateTable");
         SHEET_MODULE.put("Assign Plans", "AssignPlan");
         SHEET_MODULE.put("AssignPlans", "AssignPlan");
         SHEET_MODULE.put("Assign Plan", "AssignPlan");
@@ -67,7 +73,8 @@ public final class ExcelTestCaseReader {
             "validlogin", "invalidpassword", "invalidemail", "emptyfields",
             "emailonly", "passwordonly", "emailformat", "emaillength", "passwordlength",
             "otpsent", "otp", "wrongotp", "emptyotp", "shortotp", "alphaotp",
-            "pasteotp", "otpformat", "tabs", "historytracking", "stream");
+            "pasteotp", "otpformat", "tabs", "historytracking", "stream",
+            "addrow", "clone", "status", "delete", "grid", "expression", "bulk", "send", "withdraw", "export");
 
     private ExcelTestCaseReader() {
     }
@@ -85,7 +92,9 @@ public final class ExcelTestCaseReader {
         if ((f.equals("team") || f.equals("teams")) && (s.equals("team") || s.equals("teams"))) return true;
         if ((f.equals("department") || f.equals("departments") || f.equals("dept")) && (s.equals("departments") || s.equals("department"))) return true;
         if ((f.equals("rawdata") || f.equals("refreshcolumns") || f.equals("refresh")) && (s.equals("refreshcolumns") || s.equals("rawdata"))) return true;
-        if ((f.equals("plan") || f.equals("plans")) && (s.equals("plan") || s.equals("plans"))) return true;
+        if ((f.equals("plan") || f.equals("plans") || f.equals("createplan")) && (s.equals("plan") || s.equals("plans") || s.equals("createplan"))) return true;
+        if ((f.equals("ratetable") || f.equals("ratetables") || f.equals("rate")) && (s.equals("ratetable") || s.equals("ratetables"))) return true;
+        if ((f.equals("datastream") || f.equals("datastreams") || f.equals("data")) && (s.equals("datastreams") || s.equals("datastream") || s.equals("data"))) return true;
         if ((f.equals("assignplan") || f.equals("assignplans") || f.equals("assign")) && (s.equals("assignplan") || s.equals("assignplans") || s.equals("plans"))) return true;
         if ((f.equals("esign") || f.equals("e-sign")) && (s.equals("esign") || s.equals("e-sign"))) return true;
         return false;
@@ -229,6 +238,12 @@ public final class ExcelTestCaseReader {
         if (t.contains("compose email") || t.contains("email template")) return "email";
         if (t.contains("bulk assign") || t.contains("bulk")) return "bulk";
         if (t.contains("add member")) return "addmembers";
+        if (t.contains("add row") || t.contains("addrow")) return "addrow";
+        if (t.contains("clone")) return "clone";
+        if (t.contains("change status")) return "status";
+        if (t.contains("delete")) return "delete";
+        if (t.contains("export") || t.contains("download")) return "export";
+        if (t.contains("tab") || t.contains("recent") || t.contains("draft") || t.contains("template")) return "tabs";
         if (t.contains("change password") || t.contains("password modal")) return "changepassword";
         if (t.contains("deactivate") || t.contains("inactivate")) return "deactivate";
         if (t.contains("create") || t.contains("add new") || t.contains("wizard") || t.contains("add plan") || t.contains("assign plan")) return "create";
@@ -239,6 +254,7 @@ public final class ExcelTestCaseReader {
         if (t.contains("filter")) return "columnfilter";
         if (t.contains("search")) return "search";
         if (t.contains("view")) return "view";
+        if (t.contains("grid") || t.contains("list")) return "grid";
         return "manual";
     }
 
@@ -347,6 +363,7 @@ public final class ExcelTestCaseReader {
             case "DataStream": return System.getProperty("excel.datastream.search", "Deals");
             case "Resource": return System.getProperty("excel.resource.search", "abc");
             case "Plan": return System.getProperty("excel.plan.search", "Plan");
+            case "RateTable": return System.getProperty("excel.ratetable.search", "Rate");
             case "AssignPlan": return System.getProperty("excel.assignplan.search", "John");
             case "Esign": return System.getProperty("excel.esign.search", "Envelope");
             default: return "";

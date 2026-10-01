@@ -16,6 +16,7 @@ import Pages.DepartmentsPage;
 import Pages.LoginPage;
 import Pages.DealsModalPage;
 import Pages.RawDataPage;
+import Pages.DealCreditsPage;
 import Pages.ResourceDeleteModal;
 import Pages.ResourceFormModal;
 import Pages.ResourcePreviewModal;
@@ -26,6 +27,8 @@ import Pages.UserViewPage;
 import Pages.UsersPage;
 import Pages.PlansPage;
 import Pages.CreatePlanWizardPage;
+import Pages.RateTablePage;
+import Pages.CreateRateTableWizardPage;
 import Pages.AssignPlansPage;
 import Pages.CreateAssignPlanWizardPage;
 import Pages.EsignPage;
@@ -151,6 +154,12 @@ public final class TestCaseRegistry {
                     userStream.cancelWizard();
                 }
             }
+        });
+        register("user:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToEmployees();
+            UsersPage page = new UsersPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Users grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Users AG-Grid right-click Excel Export should succeed.");
         });
 
         // ---------------- Data Stream module ----------------
@@ -306,6 +315,12 @@ public final class TestCaseRegistry {
             page.search(row.param1());
             page.openAddMembers(row.param1());
         });
+        register("team:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToTeams();
+            TeamsPage page = new TeamsPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Teams grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Teams AG-Grid right-click Excel Export should succeed.");
+        });
 
         // ---------------- Department module ----------------
         register("department:search", (driver, row) -> {
@@ -365,6 +380,12 @@ public final class TestCaseRegistry {
             DepartmentsPage page = new DepartmentsPage(driver);
             page.search(row.param1());
             page.openAddMembers(row.param1());
+        });
+        register("department:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToDepartments();
+            TeamsPage page = new TeamsPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Departments grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Departments AG-Grid right-click Excel Export should succeed.");
         });
 
         // ---------------- Data Streams module ----------------
@@ -667,6 +688,24 @@ public final class TestCaseRegistry {
                 Assert.assertFalse(rawData.isConfirmationModalOpen(), "Confirmation modal should close on Cancel.");
             }
         });
+        register("rawdata:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToRawData();
+            RawDataPage page = new RawDataPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Raw Data grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Raw Data AG-Grid right-click Excel Export should succeed.");
+        });
+        register("refreshcolumns:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToRawData();
+            RawDataPage page = new RawDataPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Raw Data grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Raw Data AG-Grid right-click Excel Export should succeed.");
+        });
+        register("dealcredits:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToDealCredits();
+            DealCreditsPage page = new DealCreditsPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Deal Credits grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Deal Credits AG-Grid right-click Excel Export should succeed.");
+        });
 
         // ---------------- Plan module ----------------
         register("plan:search", (driver, row) -> {
@@ -711,6 +750,104 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToPlans();
             Assert.assertTrue(new PlansPage(driver).isGridLoaded(), "Plans grid should load.");
         });
+        register("plan:edit", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
+            page.editPlan(term);
+            CreatePlanWizardPage wizard = new CreatePlanWizardPage(driver);
+            if (wizard.isLoaded()) {
+                wizard.clickCancel();
+            }
+        });
+        register("plan:clone", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
+            page.clonePlan(term);
+        });
+        register("plan:status", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
+            page.changePlanStatus(term);
+        });
+        register("plan:delete", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
+            page.deletePlan(term);
+        });
+        register("plan:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToPlans();
+            PlansPage page = new PlansPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Plans grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Plans AG-Grid right-click Excel Export should succeed.");
+        });
+
+        // ---------------- Rate Table module ----------------
+        register("ratetable:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Rate" : row.param1();
+            page.searchRateTable(term);
+            Assert.assertTrue(page.isGridLoaded(), "Rate table page should load for search query: " + term);
+        });
+        register("ratetable:sort", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            String col = (row.param1() == null || row.param1().isBlank() || row.param1().contains(":")) ? "name" : row.param1();
+            page.sortByColumn(col);
+            Assert.assertTrue(page.isGridLoaded(), "Rate table should remain loaded after sorting.");
+        });
+        register("ratetable:columnfilter", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            String col = (row.param1() == null || row.param1().isBlank() || row.param1().contains(":") || row.param1().contains(";")) ? "name" : row.param1();
+            page.openColumnMenu(col);
+            Assert.assertTrue(page.isColumnMenuOpen(), "Column menu should open for " + col);
+            page.toggleFirstColumnFilterValue();
+            page.closeColumnMenu();
+        });
+        register("ratetable:create", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            page.clickCreateRateTable();
+            CreateRateTableWizardPage wizard = new CreateRateTableWizardPage(driver);
+            Assert.assertTrue(wizard.isLoaded(), "Create Rate Table wizard should open.");
+            wizard.clickCancel();
+        });
+        register("ratetable:tabs", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Rate table tabs / grid should be visible.");
+        });
+        register("ratetable:edit", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            page.clickEditRateTable();
+            CreateRateTableWizardPage wizard = new CreateRateTableWizardPage(driver);
+            if (wizard.isLoaded()) {
+                wizard.clickCancel();
+            }
+        });
+        register("ratetable:addrow", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            page.clickAddRow();
+            Assert.assertTrue(page.isGridLoaded(), "Rate table should remain loaded after adding a row.");
+        });
+        register("ratetable:view", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Rate table grid should load.");
+        });
+        register("ratetable:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToRateTables();
+            RateTablePage page = new RateTablePage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Rate table grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Rate Table AG-Grid right-click Excel Export should succeed.");
+        });
 
         // ---------------- Assign Plan module ----------------
         register("assignplan:search", (driver, row) -> {
@@ -742,6 +879,12 @@ public final class TestCaseRegistry {
         register("assignplan:grid", (driver, row) -> {
             new DashboardPage(driver).navigateToAssignPlans();
             Assert.assertTrue(new AssignPlansPage(driver).isGridLoaded(), "Assign Plans grid should load.");
+        });
+        register("assignplan:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToAssignPlans();
+            AssignPlansPage page = new AssignPlansPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Assign Plans grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Assign Plans AG-Grid right-click Excel Export should succeed.");
         });
 
         // ---------------- E-Sign module ----------------

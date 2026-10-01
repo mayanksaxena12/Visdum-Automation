@@ -33,9 +33,27 @@ if /I "%MODULE%"=="resource"       set SHEET=Resources
 if /I "%MODULE%"=="refreshcolumns" set SHEET=Refresh Columns
 if /I "%MODULE%"=="rawdata"        set SHEET=Refresh Columns
 if /I "%MODULE%"=="datastreams"    set SHEET=Data Streams
+if /I "%MODULE%"=="datastream"     set SHEET=Data Streams
+if /I "%MODULE%"=="data"           set SHEET=Data Streams
 if /I "%MODULE%"=="plans"          set SHEET=Plans
+if /I "%MODULE%"=="plan"           set SHEET=Plans
+if /I "%MODULE%"=="createplan"     set SHEET=Plans
+if /I "%MODULE%"=="ratetable"      set SHEET=Rate Table
+if /I "%MODULE%"=="ratetables"     set SHEET=Rate Table
+if /I "%MODULE%"=="rate"           set SHEET=Rate Table
 if /I "%MODULE%"=="assignplans"    set SHEET=Assign Plans
+if /I "%MODULE%"=="assignplan"     set SHEET=Assign Plans
 if /I "%MODULE%"=="esign"          set SHEET=E-Sign
+
+if /I "%MODULE%"=="export" (
+    echo ======================================================================
+    echo  Running AG-Grid Right-Click Excel Export Suite Across All Modules
+    echo  Suite: testng-export.xml ^| Class: tests.export.AgGridExportAllModulesTest
+    echo  Modules: Users, Teams, Departments, Raw Data, Deal Credits, Rate Tables, Plans, Assign Plans
+    echo ======================================================================
+    mvn test -DsuiteXmlFile=testng-export.xml %EXTRA_ARGS%
+    exit /b %ERRORLEVEL%
+)
 
 if /I "%MODULE%"=="all" (
     echo ======================================================================
@@ -48,7 +66,7 @@ if /I "%MODULE%"=="all" (
 
 if "%SHEET%"=="" (
     echo Unknown module: %MODULE%
-    echo Available Excel modules: login, users, team, departments, resources, rawdata, plans, assignplans, esign, all
+    echo Available modules: login, users, team, departments, resources, rawdata, datastreams, plans, ratetable, assignplans, esign, export, all
     exit /b 1
 )
 

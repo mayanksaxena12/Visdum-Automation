@@ -50,6 +50,18 @@ public class DriverFactory {
             }
 
             options.addArguments("--remote-allow-origins=*");
+
+            java.util.Map<String, Object> prefs = new java.util.HashMap<>();
+            java.io.File downloadDir = new java.io.File("test-output/downloads");
+            if (!downloadDir.exists()) {
+                downloadDir.mkdirs();
+            }
+            prefs.put("download.default_directory", downloadDir.getAbsolutePath());
+            prefs.put("download.prompt_for_download", false);
+            prefs.put("download.directory_upgrade", true);
+            prefs.put("safebrowsing.enabled", true);
+            options.setExperimentalOption("prefs", prefs);
+
             WebDriver driver = new ChromeDriver(options);
             driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
 

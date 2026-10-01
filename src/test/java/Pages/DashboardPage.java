@@ -73,6 +73,10 @@ public class DashboardPage {
         driver.get(utilities.ConfigReader.get("url") + "/plans/create-plan");
     }
 
+    public void navigateToRateTables() {
+        driver.get(utilities.ConfigReader.get("url") + "/plans/rate-table");
+    }
+
     public void navigateToAssignPlans() {
         driver.get(utilities.ConfigReader.get("url") + "/plans/assign-plan");
     }

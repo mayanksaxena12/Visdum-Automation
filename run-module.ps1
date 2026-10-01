@@ -35,12 +35,33 @@ $sheetMap = @{
     "refreshcolumns" = "Refresh Columns"
     "rawdata"        = "Refresh Columns"
     "datastreams"    = "Data Streams"
+    "datastream"     = "Data Streams"
+    "data"           = "Data Streams"
     "plans"          = "Plans"
+    "plan"           = "Plans"
+    "createplan"     = "Plans"
+    "ratetable"      = "Rate Table"
+    "ratetables"     = "Rate Table"
+    "rate"           = "Rate Table"
     "assignplans"    = "Assign Plans"
+    "assignplan"     = "Assign Plans"
     "esign"          = "E-Sign"
 }
 
 $moduleKey = $Module.ToLower()
+
+if ($moduleKey -eq "export") {
+    Write-Host "======================================================================" -ForegroundColor Cyan
+    Write-Host " Running AG-Grid Right-Click Excel Export Suite Across All Modules" -ForegroundColor Green
+    Write-Host " Suite: testng-export.xml | Class: tests.export.AgGridExportAllModulesTest" -ForegroundColor Cyan
+    Write-Host " Modules: Users, Teams, Departments, Raw Data, Deal Credits, Rate Tables, Plans, Assign Plans" -ForegroundColor Yellow
+    Write-Host "======================================================================" -ForegroundColor Cyan
+
+    $mvnArgs = @("test", "-DsuiteXmlFile=testng-export.xml")
+    if ($isHeadless) { $mvnArgs += "-Dheadless=true" }
+    mvn @mvnArgs
+    exit $LASTEXITCODE
+}
 
 if ($moduleKey -eq "all") {
     Write-Host "======================================================================" -ForegroundColor Cyan
