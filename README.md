@@ -261,3 +261,30 @@ After running tests, two primary reporting artifacts are generated:
    test-output/videos/<TestName>_<STATUS>_<timestamp>_replay.html
    ```
    Self-contained interactive video players that can be opened in any browser to inspect every UI step visually.
+
+---
+
+## 9. Organization Data Import & Expanded Automation
+
+### 9.1 ToolsGroup Fixture Data & UAT Replication
+The complete production organization dataset for **ToolsGroup** (Org ID: 31) has been extracted module-wise under `src/test/resources/data/toolsgroup/`:
+- `01_organization.json` - Organization metadata
+- `02_teams.json` - 6 teams and member rosters
+- `03_departments.json` - Departments
+- `04_users.json` - 52 users with roles, teams, and manager hierarchy
+- `05_data_streams.json` - 12 data streams + all calculation/lookup mappers
+- `06_rate_tables.json` - GRR & NRR rate tables + tiers + lookup rules
+- `07_plans.json` - 15 compensation plans with 91 plan components
+- `08_assigned_plans.json` - 40 plan participant assignments
+- `toolsgroup_all_modules.json` - Master consolidated JSON fixture
+
+To import this data into any target database (local or UAT), run the Artisan command in the backend:
+```bash
+php artisan org:import-json "d:\VisdumAutomation (3)\VisdumAutomation\VisdumAutomation\src\test\resources\data\toolsgroup" --org_id=<TARGET_ORG_ID>
+```
+
+### 9.2 Computation & Reports Modules
+Page Objects for **Computation** (`ComputationPage.java`) and **Reports** (`ReportsPage.java`) are registered in `TestCaseRegistry.java` supporting:
+- Grid verification, tab switching (Recents, Drafts, Scheduled, Custom, Standard)
+- Searching and filtering
+- AG-Grid Right-Click Excel export (`rightClickAndExport()`)

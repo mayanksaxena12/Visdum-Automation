@@ -106,6 +106,14 @@ public class DashboardPage {
 
 
       /** True once the authenticated dashboard is reachable (sidebar toggle present). */
+        public void navigateToComputation() {
+        driver.get(utilities.ConfigReader.get("url") + "/computation/compute");
+    }
+
+    public void navigateToReports() {
+        driver.get(utilities.ConfigReader.get("url") + "/reports");
+    }
+
     public boolean isLoaded() {
         try {
             return wait.until(ExpectedConditions.elementToBeClickable(sidebarToggle)).isDisplayed();

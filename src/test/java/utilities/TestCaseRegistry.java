@@ -34,6 +34,8 @@ import Pages.CreateAssignPlanWizardPage;
 import Pages.EsignPage;
 import Pages.SendEsignPage;
 import Pages.WithdrawEsignPage;
+import Pages.ComputationPage;
+import Pages.ReportsPage;
 
 /**
  * Central registry mapping a data-driven row's {@code Module:Scenario} to a concrete
@@ -920,6 +922,62 @@ public final class TestCaseRegistry {
         register("esign:grid", (driver, row) -> {
             new DashboardPage(driver).navigateToEsign();
             Assert.assertTrue(new EsignPage(driver).isLoaded(), "E-Sign page should load.");
+        });
+
+        // ---------------- Computation module ----------------
+        register("computation:grid", (driver, row) -> {
+            new DashboardPage(driver).navigateToComputation();
+            ComputationPage page = new ComputationPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Computation grid should load.");
+        });
+        register("computation:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToComputation();
+            ComputationPage page = new ComputationPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "FY" : row.param1();
+            page.searchComputation(term);
+            Assert.assertTrue(page.isGridLoaded(), "Computation grid should remain loaded after search.");
+        });
+        register("computation:tabs", (driver, row) -> {
+            new DashboardPage(driver).navigateToComputation();
+            ComputationPage page = new ComputationPage(driver);
+            page.switchToSavedDraftsTab();
+            Assert.assertTrue(page.isGridLoaded(), "Computation drafts tab grid should load.");
+            page.switchToRecentsTab();
+            Assert.assertTrue(page.isGridLoaded(), "Computation recents tab grid should load.");
+        });
+        register("computation:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToComputation();
+            ComputationPage page = new ComputationPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Computation grid should load before export.");
+            page.rightClickAndExport();
+        });
+
+        // ---------------- Reports module ----------------
+        register("report:grid", (driver, row) -> {
+            new DashboardPage(driver).navigateToReports();
+            ReportsPage page = new ReportsPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Reports grid should load.");
+        });
+        register("report:search", (driver, row) -> {
+            new DashboardPage(driver).navigateToReports();
+            ReportsPage page = new ReportsPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Report" : row.param1();
+            page.searchReport(term);
+            Assert.assertTrue(page.isGridLoaded(), "Reports grid should remain loaded after search.");
+        });
+        register("report:tabs", (driver, row) -> {
+            new DashboardPage(driver).navigateToReports();
+            ReportsPage page = new ReportsPage(driver);
+            page.switchToCustomReportsTab();
+            Assert.assertTrue(page.isGridLoaded(), "Custom reports tab grid should load.");
+            page.switchToAllReportsTab();
+            Assert.assertTrue(page.isGridLoaded(), "All reports tab grid should load.");
+        });
+        register("report:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToReports();
+            ReportsPage page = new ReportsPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Reports grid should load before export.");
+            page.rightClickAndExport();
         });
     }
 
