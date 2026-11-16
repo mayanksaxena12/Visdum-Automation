@@ -1,0 +1,26 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Visdum Force End Plan Comprehensive Suite (V20-1717)" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="Live Database Assertion Suite (Active &amp; Archived EMT/PMT Verification)">
+        <classes>
+            <class name="tests.plans.ForceEndPlanDbAssertionTest"/>
+        </classes>
+    </test>
+
+    <test name="Live Browser UI Workflow with Video Recording">
+        <classes>
+            <class name="tests.plans.ForceEndPlanUiTest"/>
+        </classes>
+    </test>
+
+    <test name="Force End Plan 120 Test Cases Matrix (FEP_001 to FEP_120)">
+        <classes>
+            <class name="tests.plans.ForceEndPlanDataDrivenTest"/>
+        </classes>
+    </test>
+
+</suite>

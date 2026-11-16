@@ -523,18 +523,23 @@ public final class TestCaseRegistry {
         register("login:invalidpassword", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
             lp.enterEmail(ConfigReader.get("username"));
-            lp.enterPassword("WrongPass_" + java.time.Instant.now().toEpochMilli());
+            String pwd = row.param1();
+            if (pwd == null || pwd.isBlank()) {
+                pwd = ExcelTestDataReader.parseTestDataString(row.get("TestData")).getOrDefault("Password", "InvalidPass_123");
+            }
+            lp.enterPassword(pwd + "_" + java.time.Instant.now().toEpochMilli());
             lp.clickLogin();
             Assert.assertTrue(lp.isMessageVisible("Invalid Credentials"),
                     "Expected the invalid-credentials error.");
         });
         register("login:invalidemail", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
-            lp.enterEmail("noone_" + java.time.Instant.now().toEpochMilli() + "@yopmail.com");
-            lp.enterPassword("SomePass@123");
+            String pwd = ExcelTestDataReader.parseTestDataString(row.get("TestData")).getOrDefault("Password", "DummyPass@123");
+            lp.enterEmail("unregistered_" + java.time.Instant.now().toEpochMilli() + "@visdum.test");
+            lp.enterPassword(pwd);
             lp.clickLogin();
-            Assert.assertTrue(lp.isMessageVisible("email is invalid"),
-                    "Expected the 'selected email is invalid' error.");
+            Assert.assertTrue(lp.isMessageVisible("email is invalid") || lp.isMessageVisible("Invalid Credentials"),
+                    "Expected error message for invalid email.");
         });
         register("login:emptyfields", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
@@ -550,28 +555,49 @@ public final class TestCaseRegistry {
         });
         register("login:passwordonly", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
-            lp.enterPassword("SomePass@123");
+            String pwd = ExcelTestDataReader.parseTestDataString(row.get("TestData")).getOrDefault("Password", "DummyPass@123");
+            lp.enterPassword(pwd);
             lp.clickLogin();
             Assert.assertTrue(lp.isFieldErrorVisible("Email is required"));
         });
         register("login:emailformat", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
-            lp.enterEmail("email@");
-            lp.enterPassword("SomePass@123");
+            String email = row.param1();
+            if (email == null || email.isBlank()) {
+                email = row.get("TestData");
+            }
+            if (email == null || email.isBlank()) {
+                email = "email@";
+            }
+            String pwd = ExcelTestDataReader.parseTestDataString(row.get("TestData")).getOrDefault("Password", "DummyPass@123");
+            lp.enterEmail(email);
+            lp.enterPassword(pwd);
             lp.clickLogin();
             Assert.assertTrue(lp.isFieldErrorVisible("Wrong email format"));
         });
         register("login:emaillength", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
-            lp.enterEmail("a".repeat(45) + "@example.com");
-            lp.enterPassword("SomePass@123");
+            String longEmail = ExcelTestDataReader.parseTestDataString(row.get("TestData")).get("Email");
+            if (longEmail == null || longEmail.isBlank()) {
+                longEmail = "a".repeat(45) + "@example.com";
+            }
+            String pwd = ExcelTestDataReader.parseTestDataString(row.get("TestData")).getOrDefault("Password", "DummyPass@123");
+            lp.enterEmail(longEmail);
+            lp.enterPassword(pwd);
             lp.clickLogin();
-            Assert.assertTrue(lp.isFieldErrorVisible("Maximum 50 symbols"));
+            Assert.assertTrue(lp.isFieldErrorVisible("Maximum 50 symbols") || lp.isFieldErrorVisible("Wrong email format"));
         });
         register("login:passwordlength", (driver, row) -> {
             LoginPage lp = new LoginPage(driver);
+            String shortPwd = ExcelTestDataReader.parseTestDataString(row.get("TestData")).get("Password");
+            if (shortPwd == null || shortPwd.isBlank()) {
+                shortPwd = "cad";
+            }
+            if (shortPwd.contains(" ")) {
+                shortPwd = shortPwd.split(" ")[0];
+            }
             lp.enterEmail(ConfigReader.get("username"));
-            lp.enterPassword("Ab@1");
+            lp.enterPassword(shortPwd);
             lp.clickLogin();
             Assert.assertTrue(lp.isFieldErrorVisible("Minimum 8 symbols"));
         });

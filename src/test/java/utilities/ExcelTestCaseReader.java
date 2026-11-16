@@ -64,6 +64,9 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("E-Sign", "Esign");
         SHEET_MODULE.put("ESign", "Esign");
         SHEET_MODULE.put("Esign", "Esign");
+        SHEET_MODULE.put("Organization", "Organization");
+        SHEET_MODULE.put("Organizations", "Organization");
+        SHEET_MODULE.put("Create Organization", "Organization");
     }
 
     /** Scenario tokens that have safe, read-only automation in TestCaseRegistry. */

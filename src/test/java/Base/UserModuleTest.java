@@ -1,31 +1,45 @@
 package Base;
 
-import java.time.Instant;
-
 import Pages.CreateUserPage;
 import Pages.UsersPage;
+import org.testng.annotations.AfterMethod;
+import utilities.ExcelTestDataReader;
 import utilities.TestUser;
+import utilities.UserCleanupUtil;
+
+import java.util.Map;
 
 /**
- * Base class for User Module tests. Extends {@link BaseTest} (login + navigate to Employees) and
- * adds a fixture that creates a fresh, active user so destructive/read tests have a known target.
- *
- * <p>Role and currency default to values every UAT org has, but can be overridden with
- * {@code -Dtest.user.role=...} and {@code -Dtest.user.currency=...} if needed.
+ * Base class for User Module tests.
+ * Test data is driven directly from manual-testcases.xlsx (Sheet: Users).
+ * Automatically executes post-test cleanup to keep the environment reset across runs.
  */
 public class UserModuleTest extends BaseTest {
 
-    protected TestUser createActiveUser() {
-        String id = String.valueOf(Instant.now().toEpochMilli());
-        String role = System.getProperty("test.user.role", "Individual Contributor");
-        String currency = System.getProperty("test.user.currency", "INR");
+    private final ThreadLocal<String> createdUserEmail = new ThreadLocal<>();
 
-        TestUser user = new TestUser(
-                "Automation User " + id,
-                "automation." + id + "@example.test",
-                "AUTO-" + id,
-                "EMP-" + id,
-                "Test@1234");
+    protected TestUser createActiveUser() {
+        // Read valid test user definition directly from Excel row CS1-012
+        Map<String, String> excelData = ExcelTestDataReader.getTestDataMap("Users", "CS1-012");
+
+        String name = excelData.getOrDefault("Name", "Test User New");
+        String email = excelData.getOrDefault("Email", "newuser@yopmail.com");
+        String refId = excelData.getOrDefault("Ref ID", "TEST001");
+        String role = excelData.getOrDefault("Role", "Individual Contributor");
+        if ("IC".equalsIgnoreCase(role)) {
+            role = "Individual Contributor";
+        }
+        String currency = excelData.getOrDefault("Currency", "USD");
+
+        // Fetch password from Excel CS3-010 or configuration
+        String password = excelData.getOrDefault("Password", "Password@123");
+
+        // Clean up any stale user from previous runs before creation
+        UserCleanupUtil.cleanupUserByEmail(email);
+        UserCleanupUtil.cleanupUserByRefId(refId);
+
+        TestUser user = new TestUser(name, email, refId, "EMP-" + refId, password);
+        createdUserEmail.set(email);
 
         UsersPage users = new UsersPage(DriverFactory.getDriver());
         CreateUserPage form = new CreateUserPage(DriverFactory.getDriver());
@@ -39,5 +53,14 @@ public class UserModuleTest extends BaseTest {
         form.submitNewUser();
 
         return user;
+    }
+
+    @AfterMethod(alwaysRun = true)
+    public void cleanupCreatedUser() {
+        String email = createdUserEmail.get();
+        if (email != null && !email.isBlank()) {
+            UserCleanupUtil.cleanupUserByEmail(email);
+            createdUserEmail.remove();
+        }
     }
 }

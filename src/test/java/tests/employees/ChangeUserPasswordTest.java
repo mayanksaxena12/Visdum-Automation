@@ -51,7 +51,8 @@ public class ChangeUserPasswordTest extends UserModuleTest {
             TestUser created = createActiveUser();
             user = created.name;
         }
-        String password = System.getProperty("test.user.password", "Test@1234");
+        String password = utilities.ExcelTestDataReader.getTestDataMap("Users", "CS1-012")
+                .getOrDefault("Password", "NewPassword@123");
         UsersPage users = new UsersPage(DriverFactory.getDriver());
         ChangePasswordModal modal = new ChangePasswordModal(DriverFactory.getDriver());
 

@@ -50,6 +50,33 @@ $sheetMap = @{
 
 $moduleKey = $Module.ToLower()
 
+if ($moduleKey -eq "org" -or $moduleKey -eq "organization" -or $moduleKey -eq "organizations") {
+    Write-Host "======================================================================" -ForegroundColor Cyan
+    Write-Host " Running Organization Management & Creation Suite" -ForegroundColor Green
+    Write-Host " Suite: testng-organization.xml | Class: tests.organization.CreateOrganizationTest" -ForegroundColor Cyan
+    Write-Host "======================================================================" -ForegroundColor Cyan
+
+    $mvnArgs = @("test", "-DsuiteXmlFile=testng-organization.xml")
+    if ($Force) { $mvnArgs += "-Dexcel.force=true" }
+    if ($Headless) { $mvnArgs += "-Dheadless=true" }
+
+    & mvn @mvnArgs
+    exit $LASTEXITCODE
+}
+
+if ($moduleKey -eq "fep" -or $moduleKey -eq "force-end" -or $moduleKey -eq "forceend") {
+    Write-Host "======================================================================" -ForegroundColor Cyan
+    Write-Host " Running Force End Plan 120 Test Cases Suite (V20-1717)" -ForegroundColor Green
+    Write-Host " Suite: testng-force-end.xml | File: src/test/resources/Force_End_Plan_120_Test_Cases.xlsx" -ForegroundColor Cyan
+    Write-Host " Total Test Cases: 120 across all 15 specification categories" -ForegroundColor Yellow
+    Write-Host "======================================================================" -ForegroundColor Cyan
+
+    $mvnArgs = @("test", "-DsuiteXmlFile=testng-force-end.xml")
+    if ($isHeadless) { $mvnArgs += "-Dheadless=true" }
+    mvn @mvnArgs
+    exit $LASTEXITCODE
+}
+
 if ($moduleKey -eq "export") {
     Write-Host "======================================================================" -ForegroundColor Cyan
     Write-Host " Running AG-Grid Right-Click Excel Export Suite Across All Modules" -ForegroundColor Green
