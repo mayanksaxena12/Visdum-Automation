@@ -25,13 +25,14 @@ import com.aventstack.extentreports.reporter.configuration.Theme;
 
 import Base.DriverFactory;
 import utilities.TestCaseRow;
+import utilities.ScreenRecorderUtil;
 
 /**
  * TestNG listener producing detailed HTML ExtentReports under {@code test-output/ExtentReport/}
  * with embedded Base64 screenshots, saved PNG files under {@code test-output/screenshots/},
  * and test case metadata from the manual Excel file.
  */
-public class ExtentReportListener implements ITestListener {
+public class ExtentReportListener implements ITestListener, org.testng.ISuiteListener {
 
     private static String latestReportPath = "";
     private static final ExtentReports extent = createExtentReports();
@@ -60,6 +61,7 @@ public class ExtentReportListener implements ITestListener {
     public void onTestStart(ITestResult result) {
         ExtentTest test = createTest(result);
         testMap.put(Thread.currentThread().getId(), test);
+        ScreenRecorderUtil.startRecording(test.getModel().getName(), result.getMethod().getDescription());
         System.out.println("\n------------------------------------------------------------");
         System.out.println("[TEST RUNNING] " + test.getModel().getName());
     }
@@ -70,6 +72,12 @@ public class ExtentReportListener implements ITestListener {
         System.out.println("[TEST SUCCESS] ✅ " + test.getModel().getName());
         System.out.println("------------------------------------------------------------\n");
         test.log(Status.PASS, "Test passed successfully.");
+
+        WebDriver driver = DriverFactory.getDriver();
+        ScreenRecorderUtil.RecordingResult recording = ScreenRecorderUtil.stopRecording(test.getModel().getName(), "PASS", driver);
+        if (recording != null && recording.getFrameCount() > 0) {
+            test.info(recording.toReportHtml());
+        }
     }
 
     @Override
@@ -82,6 +90,12 @@ public class ExtentReportListener implements ITestListener {
 
         test.log(Status.FAIL, result.getThrowable());
         attachScreenshot(test, result);
+
+        WebDriver driver = DriverFactory.getDriver();
+        ScreenRecorderUtil.RecordingResult recording = ScreenRecorderUtil.stopRecording(test.getModel().getName(), "FAIL", driver);
+        if (recording != null && recording.getFrameCount() > 0) {
+            test.info(recording.toReportHtml());
+        }
     }
 
     @Override
@@ -94,7 +108,22 @@ public class ExtentReportListener implements ITestListener {
     }
 
     @Override
+    public void onStart(org.testng.ISuite suite) {
+        String sessionUser = utilities.ConfigReader.get("username");
+        if (sessionUser != null && !sessionUser.isBlank()) {
+            utilities.AutomationCleanupRegistry.registerProtectedSessionAccount(sessionUser);
+        }
+        utilities.AutomationCleanupRegistry.preFlightReset("newuser@yopmail.com", "fullauto@yopmail.com");
+    }
+
+    @Override
+    public void onFinish(org.testng.ISuite suite) {
+        utilities.AutomationCleanupRegistry.executeSuiteCleanup();
+    }
+
+    @Override
     public void onFinish(ITestContext context) {
+        utilities.AutomationCleanupRegistry.executeSuiteCleanup();
         extent.flush();
         try {
             File source = new File(latestReportPath);
@@ -119,6 +148,25 @@ public class ExtentReportListener implements ITestListener {
 
     private ExtentTest createTest(ITestResult result) {
         Object[] params = result.getParameters();
+        if (params != null && params.length > 0 && params[0] instanceof tests.plans.ForceEndPlanDataDrivenTest.FepTestCase tc) {
+            String testTitle = "[" + tc.id + "] " + tc.area + " - " + tc.scenario;
+            ExtentTest test = extent.createTest(testTitle, "Priority: " + tc.priority + " | Status: " + tc.status);
+            test.assignCategory("Force End Plan (V20-1717)");
+            test.assignCategory(tc.area);
+            test.assignCategory("Priority-" + tc.priority);
+
+            StringBuilder sb = new StringBuilder("<div style='font-size:12px; margin-top:5px; line-height:1.6;'>");
+            sb.append("<b>Preconditions:</b> ").append(tc.preconditions).append("<br/>");
+            sb.append("<b>Steps:</b> ").append(tc.steps).append("<br/>");
+            sb.append("<b>Expected:</b> ").append(tc.expectedResult).append("<br/>");
+            sb.append("<b>Actual:</b> ").append(tc.actualResult).append("<br/>");
+            if (tc.remarks != null && !tc.remarks.isBlank()) {
+                sb.append("<b>Remarks:</b> ").append(tc.remarks);
+            }
+            sb.append("</div>");
+            test.info(sb.toString());
+            return test;
+        }
         if (params != null && params.length > 0 && params[0] instanceof TestCaseRow row) {
             String testTitle = "[" + row.get("Sheet") + "] " + row.getTestCaseId() + " : " + row.getDescription();
             ExtentTest test = extent.createTest(testTitle, "Scenario: " + row.getScenario() + " | Module: " + row.getModule());

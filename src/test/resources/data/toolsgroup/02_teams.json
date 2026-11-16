@@ -1,0 +1,198 @@
+[
+  {
+    "id": 80,
+    "name": "Customer Value Managers",
+    "description": null,
+    "status": "ACTIVE",
+    "members": [
+      {
+        "name": "Tilson Bennett",
+        "email": "test123tbennett@toolsgroup.com"
+      },
+      {
+        "name": "Federico Piccioni",
+        "email": "test123fpiccioni@toolsgroup.com"
+      },
+      {
+        "name": "Ian Harvey",
+        "email": "test123iharvey@toolsgroup.com"
+      },
+      {
+        "name": "Simone Zanni",
+        "email": "test123szanni@toolsgroup.com"
+      },
+      {
+        "name": "Bass Khoury",
+        "email": "test123bkhoury@toolsgroup.com"
+      },
+      {
+        "name": "Marcelo Veiga",
+        "email": "test123mveiga@toolsgroup.com"
+      },
+      {
+        "name": "Simone Erba",
+        "email": "test123serba@toolsgroup.com"
+      },
+      {
+        "name": "Adam Capps",
+        "email": "test123acapps@toolsgroup.com"
+      },
+      {
+        "name": "Diana Toncel",
+        "email": "test123dtoncel@toolsgroup.com"
+      },
+      {
+        "name": "Fabien Lamon",
+        "email": "test123flamon@toolsgroup.com"
+      },
+      {
+        "name": "Jesseca Klein",
+        "email": "test123jklein@toolsgroup.com"
+      },
+      {
+        "name": "Lucio Giorgis",
+        "email": "test123lgiorgis@toolsgroup.com"
+      },
+      {
+        "name": "Leonardo Clemente",
+        "email": "test123lclemente@toolsgroup.com"
+      }
+    ]
+  },
+  {
+    "id": 84,
+    "name": "Americas",
+    "description": null,
+    "status": "ACTIVE",
+    "members": [
+      {
+        "name": "Jeff Sacher",
+        "email": "test123jsacher@toolsgroup.com"
+      },
+      {
+        "name": "Robert Bryant",
+        "email": "test123rbryant@toolsgroup.com"
+      },
+      {
+        "name": "Dheeraj Prasad",
+        "email": "test123dprasad@toolsgroup.com"
+      },
+      {
+        "name": "Andrea Orduz",
+        "email": "test123aorduz@toolsgroup.com"
+      },
+      {
+        "name": "Peter Dailey",
+        "email": "test123pdailey@toolsgroup.com"
+      },
+      {
+        "name": "Remy Dupuy",
+        "email": "test123rdupuy@toolsgroup.com"
+      }
+    ]
+  },
+  {
+    "id": 85,
+    "name": "EMEA",
+    "description": null,
+    "status": "ACTIVE",
+    "members": [
+      {
+        "name": "Francesco Stolfo",
+        "email": "test123fstolfo@toolsgroup.com"
+      },
+      {
+        "name": "Pier Fortunato",
+        "email": "test123pfortunato@toolsgroup.com"
+      },
+      {
+        "name": "Carlo Moretti",
+        "email": "test123cmoretti@toolsgroup.com"
+      },
+      {
+        "name": "Joao Oliveira",
+        "email": "test123joliveira@toolsgroup.com"
+      }
+    ]
+  },
+  {
+    "id": 86,
+    "name": "Solution Engineers",
+    "description": null,
+    "status": "ACTIVE",
+    "members": [
+      {
+        "name": "Gerrott Faulkingham",
+        "email": "test123gfaulkingham@toolsgroup.com"
+      },
+      {
+        "name": "Andy Harris",
+        "email": "test123aharris@toolsgroup.com"
+      },
+      {
+        "name": "Ander Sant\u00edn",
+        "email": "test123asantin@toolsgroup.com"
+      },
+      {
+        "name": "Leonida Cataldino",
+        "email": "test123lcataldino@toolsgroup.com"
+      },
+      {
+        "name": "Brett Bever",
+        "email": "test123bbever@toolsgroup.com"
+      },
+      {
+        "name": "Vitaliano Menaguale",
+        "email": "test123vmenaguale@toolsgroup.com"
+      },
+      {
+        "name": "Jesus Palacios",
+        "email": "test123jpalacios@toolsgroup.com"
+      }
+    ]
+  },
+  {
+    "id": 87,
+    "name": "Revenue Operations",
+    "description": null,
+    "status": "ACTIVE",
+    "members": [
+      {
+        "name": "Lynn C Cappuccino",
+        "email": "test123lcappuccino@toolsgroup.com"
+      },
+      {
+        "name": "Vanessa Navarrete",
+        "email": "test123vnavarrete@toolsgroup.com"
+      },
+      {
+        "name": "Julio Estevez",
+        "email": "test123jestevez@toolsgroup.com"
+      },
+      {
+        "name": "Lynn C Cappuccino",
+        "email": "test123lcappuccino@visdum.com"
+      },
+      {
+        "name": "Vanessa Navarrete",
+        "email": "test123vnavarrete@visdum.com"
+      },
+      {
+        "name": "Moushumi Ganguly",
+        "email": "test123mganguly@toolsgroup.com"
+      }
+    ]
+  },
+  {
+    "id": 88,
+    "name": "Indirect",
+    "description": null,
+    "status": "ACTIVE",
+    "members": [
+      {
+        "name": "Michael Haiber",
+        "email": "test123mhaiber@toolsgroup.com"
+      }
+    ]
+  }
+]

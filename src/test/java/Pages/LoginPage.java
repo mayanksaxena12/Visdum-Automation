@@ -142,9 +142,34 @@ public class LoginPage extends BasePage {
                 By.xpath("//span[@role='alert' and normalize-space()=" + xpathLiteral(message) + "]"))).isDisplayed();
     }
 
+    public boolean isAnyFieldErrorVisible(String... messages) {
+        for (String msg : messages) {
+            java.util.List<org.openqa.selenium.WebElement> els = driver.findElements(
+                    By.xpath("//span[@role='alert' and contains(normalize-space(), " + xpathLiteral(msg) + ")]"));
+            if (!els.isEmpty() && els.get(0).isDisplayed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Lenient check for an API error toast by a distinctive substring of its message. */
     public boolean isMessageVisible(String substring) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//*[contains(normalize-space(.)," + xpathLiteral(substring) + ")]"))).isDisplayed();
+    }
+
+    public boolean isAnyMessageVisible(String... substrings) {
+        StringBuilder xpath = new StringBuilder("//*[");
+        for (int i = 0; i < substrings.length; i++) {
+            if (i > 0) xpath.append(" or ");
+            xpath.append("contains(normalize-space(.),").append(xpathLiteral(substrings[i])).append(")");
+        }
+        xpath.append("]");
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath.toString()))).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

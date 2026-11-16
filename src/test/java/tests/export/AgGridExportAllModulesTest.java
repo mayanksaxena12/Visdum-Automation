@@ -10,6 +10,8 @@ import Pages.DealCreditsPage;
 import Pages.RateTablePage;
 import Pages.PlansPage;
 import Pages.AssignPlansPage;
+import Pages.ComputationPage;
+import Pages.ReportsPage;
 import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -141,5 +143,33 @@ public class AgGridExportAllModulesTest extends BaseTest {
         ScreenRecorderUtil.captureFrame(driver, "Navigated to Assign Plans Grid");
         boolean exported = assignPlansPage.rightClickAndExport();
         Assert.assertTrue(exported, "Assign Plans AG-Grid right-click Excel Export should trigger successfully.");
+    }
+
+    @Test(priority = 9, description = "Right-click AG-Grid and export Computation data to Excel")
+    public void exportComputationGrid() {
+        WebDriver driver = DriverFactory.getDriver();
+        DashboardPage dashboard = new DashboardPage(driver);
+        dashboard.navigateToComputation();
+
+        ComputationPage compPage = new ComputationPage(driver);
+        Assert.assertTrue(compPage.isGridLoaded(), "Computation AG-Grid should be loaded.");
+
+        ScreenRecorderUtil.captureFrame(driver, "Navigated to Computation Grid");
+        boolean exported = compPage.rightClickAndExport();
+        Assert.assertTrue(exported, "Computation AG-Grid right-click Excel Export should trigger successfully.");
+    }
+
+    @Test(priority = 10, description = "Right-click AG-Grid and export Reports data to Excel")
+    public void exportReportsGrid() {
+        WebDriver driver = DriverFactory.getDriver();
+        DashboardPage dashboard = new DashboardPage(driver);
+        dashboard.navigateToReports();
+
+        ReportsPage reportsPage = new ReportsPage(driver);
+        Assert.assertTrue(reportsPage.isGridLoaded(), "Reports AG-Grid should be loaded.");
+
+        ScreenRecorderUtil.captureFrame(driver, "Navigated to Reports Grid");
+        boolean exported = reportsPage.rightClickAndExport();
+        Assert.assertTrue(exported, "Reports AG-Grid right-click Excel Export should trigger successfully.");
     }
 }

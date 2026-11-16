@@ -1,0 +1,242 @@
+[
+  {
+    "id": 131,
+    "name": "GRR",
+    "file_name": "Rate Table Toolsgroup.xlsx",
+    "source_field": "to number ;from number ;quarterly payout %",
+    "lookup_rule": "{\"when\": [{\"operator\": \">=\", \"condition\": null, \"where_key\": \"data_palettes#custom_parameter\", \"where_value\": \"rate_palettes#to_number_\"}, {\"operator\": \"<\", \"condition\": \"AND\", \"where_key\": \"data_palettes#custom_parameter\", \"where_value\": \"rate_palettes#from_number_\"}]}",
+    "engine_lookup_rule": "{\"and\": [{\">=\": [{\"var\": \"data_palettes#custom_parameter\"}, {\"var\": \"rate_palettes#to_number_\"}]}, {\"<\": [{\"var\": \"data_palettes#custom_parameter\"}, {\"var\": \"rate_palettes#from_number_\"}]}]}",
+    "status": "ACTIVE",
+    "physical_table": "rate_toolsgroup_grr",
+    "data_rows": [
+      {
+        "id": 18,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 0.0,
+        "from_number_": 80.0,
+        "quarterly_payout_": 0.0,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 19,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 80.0,
+        "from_number_": 90.0,
+        "quarterly_payout_": 0.6,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 20,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 90.0,
+        "from_number_": 91.0,
+        "quarterly_payout_": 0.65,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 21,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 91.0,
+        "from_number_": 92.0,
+        "quarterly_payout_": 0.75,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 22,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 92.0,
+        "from_number_": 93.0,
+        "quarterly_payout_": 0.85,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 23,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 93.0,
+        "from_number_": 94.0,
+        "quarterly_payout_": 1.0,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 24,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 94.0,
+        "from_number_": 95.0,
+        "quarterly_payout_": 1.05,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 25,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 95.0,
+        "from_number_": 96.0,
+        "quarterly_payout_": 1.1,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      },
+      {
+        "id": 26,
+        "organization_id": 31,
+        "rate_id": 131,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number_": 96.0,
+        "from_number_": 9999.0,
+        "quarterly_payout_": 1.15,
+        "created_at": "2026-02-25T09:50:25",
+        "updated_at": "2026-02-25T09:50:25"
+      }
+    ]
+  },
+  {
+    "id": 132,
+    "name": "NRR",
+    "file_name": "Rate Table Toolsgroup.xlsx",
+    "source_field": "to number ;from number ;quarterly payout %",
+    "lookup_rule": "{\"when\": [{\"operator\": \">=\", \"condition\": null, \"where_key\": \"data_palettes#custom_parameter\", \"where_value\": \"rate_palettes#to_number\"}, {\"operator\": \"<\", \"condition\": \"AND\", \"where_key\": \"data_palettes#custom_parameter\", \"where_value\": \"rate_palettes#from_number\"}]}",
+    "engine_lookup_rule": "{\"and\": [{\">=\": [{\"var\": \"data_palettes#custom_parameter\"}, {\"var\": \"rate_palettes#to_number\"}]}, {\"<\": [{\"var\": \"data_palettes#custom_parameter\"}, {\"var\": \"rate_palettes#from_number\"}]}]}",
+    "status": "ACTIVE",
+    "physical_table": "rate_toolsgroup_nrr",
+    "data_rows": [
+      {
+        "id": 1,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 0.0,
+        "from_number": 90.0,
+        "quarterly_payout": 0.0,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 2,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 90.0,
+        "from_number": 95.0,
+        "quarterly_payout": 0.7,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 3,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 95.0,
+        "from_number": 100.0,
+        "quarterly_payout": 0.75,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 4,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 100.0,
+        "from_number": 102.0,
+        "quarterly_payout": 0.8,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 5,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 102.0,
+        "from_number": 103.0,
+        "quarterly_payout": 0.85,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 6,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 103.0,
+        "from_number": 105.0,
+        "quarterly_payout": 0.95,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 7,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 105.0,
+        "from_number": 107.0,
+        "quarterly_payout": 1.0,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 8,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 107.0,
+        "from_number": 110.0,
+        "quarterly_payout": 1.15,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      },
+      {
+        "id": 9,
+        "organization_id": 31,
+        "rate_id": 132,
+        "effective_start_date": "2026-01-01",
+        "effective_end_date": null,
+        "to_number": 110.0,
+        "from_number": 9999.0,
+        "quarterly_payout": 1.2,
+        "created_at": "2026-02-25T07:15:28",
+        "updated_at": "2026-02-25T07:15:28"
+      }
+    ]
+  }
+]

@@ -45,6 +45,14 @@ if /I "%MODULE%"=="assignplans"    set SHEET=Assign Plans
 if /I "%MODULE%"=="assignplan"     set SHEET=Assign Plans
 if /I "%MODULE%"=="esign"          set SHEET=E-Sign
 
+if /I "%MODULE%"=="org" goto run_org
+if /I "%MODULE%"=="organization" goto run_org
+if /I "%MODULE%"=="organizations" goto run_org
+
+if /I "%MODULE%"=="fep" goto run_fep
+if /I "%MODULE%"=="force-end" goto run_fep
+if /I "%MODULE%"=="forceend" goto run_fep
+
 if /I "%MODULE%"=="export" (
     echo ======================================================================
     echo  Running AG-Grid Right-Click Excel Export Suite Across All Modules
@@ -52,6 +60,40 @@ if /I "%MODULE%"=="export" (
     echo  Modules: Users, Teams, Departments, Raw Data, Deal Credits, Rate Tables, Plans, Assign Plans
     echo ======================================================================
     mvn test -DsuiteXmlFile=testng-export.xml %EXTRA_ARGS%
+    exit /b %ERRORLEVEL%
+)
+
+:run_org
+echo ======================================================================
+echo  Running Organization Management & Creation Suite
+echo  Suite: testng-organization.xml ^| Class: tests.organization.CreateOrganizationTest
+echo ======================================================================
+mvn test -DsuiteXmlFile=testng-organization.xml %EXTRA_ARGS%
+exit /b %ERRORLEVEL%
+
+:run_fep
+if /I "%MODULE%"=="fep" (
+    echo ======================================================================
+    echo  Running Force End Plan 120 Test Cases Suite (V20-1717)
+    echo  Suite: testng-force-end.xml ^| File: src/test/resources/Force_End_Plan_120_Test_Cases.xlsx
+    echo ======================================================================
+    mvn test -DsuiteXmlFile=testng-force-end.xml %EXTRA_ARGS%
+    exit /b %ERRORLEVEL%
+)
+if /I "%MODULE%"=="force-end" (
+    echo ======================================================================
+    echo  Running Force End Plan 120 Test Cases Suite (V20-1717)
+    echo  Suite: testng-force-end.xml ^| File: src/test/resources/Force_End_Plan_120_Test_Cases.xlsx
+    echo ======================================================================
+    mvn test -DsuiteXmlFile=testng-force-end.xml %EXTRA_ARGS%
+    exit /b %ERRORLEVEL%
+)
+if /I "%MODULE%"=="forceend" (
+    echo ======================================================================
+    echo  Running Force End Plan 120 Test Cases Suite (V20-1717)
+    echo  Suite: testng-force-end.xml ^| File: src/test/resources/Force_End_Plan_120_Test_Cases.xlsx
+    echo ======================================================================
+    mvn test -DsuiteXmlFile=testng-force-end.xml %EXTRA_ARGS%
     exit /b %ERRORLEVEL%
 )
 
