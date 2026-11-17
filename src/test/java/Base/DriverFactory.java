@@ -34,8 +34,12 @@ public class DriverFactory {
             ChromeOptions options = new ChromeOptions();
 
             String sysHeadless = System.getProperty("headless");
-            String configHeadless = ConfigReader.get("headless", "false");
-            boolean isHeadless = "true".equalsIgnoreCase(sysHeadless) || "true".equalsIgnoreCase(configHeadless);
+            boolean isHeadless;
+            if (sysHeadless != null && !sysHeadless.isBlank()) {
+                isHeadless = Boolean.parseBoolean(sysHeadless);
+            } else {
+                isHeadless = Boolean.parseBoolean(ConfigReader.get("headless", "false"));
+            }
 
             if (isHeadless) {
                 System.out.println("[BROWSER] Starting Chrome in HEADLESS mode (background, no UI)...");
@@ -67,6 +71,11 @@ public class DriverFactory {
 
             if (isHeadless) {
                 driver.manage().window().setSize(new Dimension(1920, 1080));
+            } else {
+                try {
+                    driver.manage().window().maximize();
+                } catch (Exception ignored) {
+                }
             }
 
             DRIVER.set(driver);

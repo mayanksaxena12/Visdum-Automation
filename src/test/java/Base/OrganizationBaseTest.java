@@ -28,12 +28,16 @@ public class OrganizationBaseTest {
 
         // Dynamically shield active session user from any database cleanup
         AutomationCleanupRegistry.registerProtectedSessionAccount(username);
+        AutomationCleanupRegistry.preFlightResetOrgs("AutoOrg Alpha", "TechCorp");
 
         LoginPage login = new LoginPage(DriverFactory.getDriver());
         login.login(username, password);
 
         OrganizationPage orgPage = new OrganizationPage(DriverFactory.getDriver());
-        orgPage.navigateToOrganizations();
+        String currentUrl = DriverFactory.getDriver().getCurrentUrl();
+        if (!currentUrl.contains("organization")) {
+            orgPage.navigateToOrganizations();
+        }
     }
 
     @AfterMethod(alwaysRun = true)

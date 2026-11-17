@@ -264,7 +264,7 @@ public final class AutomationCleanupRegistry {
                 System.err.println(">>> [CLEANUP ERROR] Failed cleaning user " + email + ": " + e.getMessage());
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             record.status = CleanupStatus.FAILED;
             record.failureReason = "DB Connection failure: " + e.getMessage();
         }
@@ -303,19 +303,38 @@ public final class AutomationCleanupRegistry {
             }
 
             // Clean child entities created for this organization
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM vis_rbac_roles WHERE organization_id = ?")) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM two_factor_authentications WHERE user_id IN (SELECT id FROM user_master WHERE organization_id = ?)")) {
                 ps.setLong(1, orgId);
                 ps.executeUpdate();
             }
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM data_user_reference WHERE organization_id = ?")) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM user_master_details WHERE user_id IN (SELECT id FROM user_master WHERE organization_id = ?)")) {
                 ps.setLong(1, orgId);
                 ps.executeUpdate();
             }
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM user_master_details WHERE organization_id = ?")) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM user_teams WHERE user_id IN (SELECT id FROM user_master WHERE organization_id = ?)")) {
                 ps.setLong(1, orgId);
                 ps.executeUpdate();
             }
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM user_master WHERE organization_id = ?")) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM user_departments WHERE user_id IN (SELECT id FROM user_master WHERE organization_id = ?)")) {
+                ps.setLong(1, orgId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM data_user_reference WHERE organization_id = ?")) {
+                ps.setLong(1, orgId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM user_master WHERE organization_id = ?")) {
+                ps.setLong(1, orgId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM vis_rbac_roles WHERE organization_id = ?")) {
                 ps.setLong(1, orgId);
                 ps.executeUpdate();
             }
@@ -340,7 +359,7 @@ public final class AutomationCleanupRegistry {
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             record.status = CleanupStatus.FAILED;
             record.failureReason = e.getMessage();
         }
@@ -389,6 +408,17 @@ public final class AutomationCleanupRegistry {
             if (isProtected(email)) continue;
             TrackedRecord r = new TrackedRecord("PRE-FLIGHT", RecordType.USER, null, email);
             cleanUserRecord(r);
+        }
+    }
+
+    /**
+     * Pre-flight sanity reset for test organizations (prevents leftover conflicts if previous run was aborted).
+     */
+    public static void preFlightResetOrgs(String... testOrgNames) {
+        for (String orgName : testOrgNames) {
+            if ("Visdum Demo".equalsIgnoreCase(orgName)) continue;
+            TrackedRecord r = new TrackedRecord("PRE-FLIGHT", RecordType.ORGANIZATION, null, orgName);
+            cleanOrgRecord(r);
         }
     }
 }

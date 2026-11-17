@@ -5,8 +5,10 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import utilities.ConfigReader;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -16,7 +18,7 @@ import java.util.List;
 public class OrganizationPage extends BasePage {
 
     // Toolbar & Navigation
-    private final By addOrganizationBtn = By.xpath("//*[contains(@class,'btn') and (contains(.,'Add New Organization') or contains(.,'Add Organization'))] | //button[contains(.,'Add New Organization')] | //*[normalize-space()='Add New Organization']");
+    private final By addOrganizationBtn = By.xpath("//div[contains(@class,'btn-primary') and contains(.,'Add New Organization')] | //button[contains(.,'Add New Organization')]");
     private final By searchInput = By.xpath("//input[@data-dc-user-table-filter='search'] | //input[@placeholder='Search']");
 
     // Drawer Header & Containers
@@ -62,17 +64,47 @@ public class OrganizationPage extends BasePage {
     }
 
     public void clickAddOrganization() {
-        WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(addOrganizationBtn));
-        try {
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
-        } catch (Exception e) {
-            btn.click();
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(addOrganizationBtn));
+                try {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", btn);
+                } catch (Exception ignored) {}
+
+                if (attempt == 1) {
+                    try {
+                        btn.click();
+                    } catch (Exception ex) {
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+                    }
+                } else if (attempt == 2) {
+                    try {
+                        new org.openqa.selenium.interactions.Actions(driver).moveToElement(btn).click().perform();
+                    } catch (Exception ex) {
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+                    }
+                } else {
+                    ((JavascriptExecutor) driver).executeScript(
+                            "arguments[0].dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, view: window}));", btn);
+                }
+
+                // Verify if drawer opened
+                new WebDriverWait(driver, Duration.ofSeconds(4))
+                        .until(ExpectedConditions.visibilityOfElementLocated(orgNameInput));
+                return; // Drawer successfully opened!
+            } catch (Exception e) {
+                if (attempt == 3) {
+                    System.out.println(">>> [WARN] clickAddOrganization: drawer did not open after 3 attempts.");
+                } else {
+                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+                }
+            }
         }
     }
 
     public boolean isDrawerOpen() {
         try {
-            return wait.until(ExpectedConditions.visibilityOfElementLocated(drawerContainer)).isDisplayed();
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(orgNameInput)).isDisplayed();
         } catch (Exception e) {
             return !driver.findElements(orgNameInput).isEmpty() && driver.findElement(orgNameInput).isDisplayed();
         }
