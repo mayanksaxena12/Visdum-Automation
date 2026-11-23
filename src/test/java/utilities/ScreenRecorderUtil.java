@@ -31,14 +31,60 @@ public final class ScreenRecorderUtil {
     private static final String VIDEO_DIR = "test-output/videos";
 
     public static class FrameItem {
+        /** Base64 image data (JPEG when compression succeeded, otherwise the original PNG). */
         public final String base64Png;
+        public final String mimeType;
         public final String stepLabel;
         public final long timestamp;
 
         public FrameItem(String base64Png, String stepLabel) {
-            this.base64Png = base64Png;
+            this(base64Png, "image/png", stepLabel);
+        }
+
+        public FrameItem(String base64, String mimeType, String stepLabel) {
+            this.base64Png = base64;
+            this.mimeType = mimeType;
             this.stepLabel = stepLabel;
             this.timestamp = System.currentTimeMillis();
+        }
+    }
+
+    /**
+     * Shrinks a PNG screenshot to a JPEG (max 1280px wide, quality 0.6) so a replay with dozens of
+     * step frames stays a few MB instead of tens of MB. Returns null if conversion fails.
+     */
+    private static byte[] toCompactJpeg(byte[] png) {
+        try {
+            java.awt.image.BufferedImage src = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(png));
+            if (src == null) {
+                return null;
+            }
+            int w = src.getWidth();
+            int h = src.getHeight();
+            if (w > 1280) {
+                h = (int) Math.round(h * (1280.0 / w));
+                w = 1280;
+            }
+            java.awt.image.BufferedImage out = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = out.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(src, 0, 0, w, h, java.awt.Color.WHITE, null);
+            g.dispose();
+
+            javax.imageio.ImageWriter writer = javax.imageio.ImageIO.getImageWritersByFormatName("jpg").next();
+            javax.imageio.ImageWriteParam param = writer.getDefaultWriteParam();
+            param.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(0.6f);
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            try (javax.imageio.stream.ImageOutputStream ios = javax.imageio.ImageIO.createImageOutputStream(bos)) {
+                writer.setOutput(ios);
+                writer.write(null, new javax.imageio.IIOImage(out, null, null), param);
+            } finally {
+                writer.dispose();
+            }
+            return bos.toByteArray();
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -121,10 +167,16 @@ public final class ScreenRecorderUtil {
             if (driver instanceof TakesScreenshot takesScreenshot) {
                 byte[] bytes = takesScreenshot.getScreenshotAs(OutputType.BYTES);
                 if (bytes != null && bytes.length > 0) {
-                    String b64 = Base64.getEncoder().encodeToString(bytes);
+                    byte[] jpeg = toCompactJpeg(bytes);
+                    FrameItem item = jpeg != null
+                            ? new FrameItem(Base64.getEncoder().encodeToString(jpeg), "image/jpeg", stepLabel)
+                            : new FrameItem(Base64.getEncoder().encodeToString(bytes), "image/png", stepLabel);
                     List<FrameItem> frames = THREAD_FRAMES.get();
                     if (frames.size() < 150) {
-                        frames.add(new FrameItem(b64, stepLabel));
+                        frames.add(item);
+                    } else {
+                        // Keep the newest frame (e.g. "Test Ended") once the cap is reached.
+                        frames.set(frames.size() - 1, item);
                     }
                 }
             }
@@ -244,7 +296,7 @@ public final class ScreenRecorderUtil {
         for (int i = 0; i < frames.size(); i++) {
             FrameItem f = frames.get(i);
             sb.append("  { label: '").append(escapeJs(f.stepLabel))
-                    .append("', data: 'data:image/png;base64,").append(f.base64Png).append("' }");
+                    .append("', data: 'data:").append(f.mimeType).append(";base64,").append(f.base64Png).append("' }");
             if (i < frames.size() - 1) sb.append(",");
             sb.append("\n");
         }

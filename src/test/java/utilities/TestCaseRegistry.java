@@ -60,16 +60,7 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
             Assert.assertTrue(page.isGridLoaded(), "Users grid should load.");
-            String term = row.param1();
-            if (term == null || term.isBlank()) {
-                try {
-                    term = page.getFirstRowValue("name");
-                } catch (Exception ignored) {
-                }
-            }
-            if (term == null || term.isBlank()) {
-                term = "Mayank";
-            }
+            String term = userLookupTerm(page, row);
             page.search(term);
             Assert.assertTrue(page.isRowListed(term) || page.isGridLoaded(),
                     "Expected a user row to match '" + term + "' or grid to remain loaded.");
@@ -93,16 +84,7 @@ public final class TestCaseRegistry {
         register("user:view", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            String term = row.param1();
-            if (term == null || term.isBlank()) {
-                try {
-                    term = page.getFirstRowValue("name");
-                } catch (Exception ignored) {
-                }
-            }
-            if (term == null || term.isBlank()) {
-                term = "Mayank";
-            }
+            String term = userLookupTerm(page, row);
             page.search(term);
             page.openView(term);
             UserViewPage view = new UserViewPage(driver);
@@ -112,7 +94,7 @@ public final class TestCaseRegistry {
         register("user:changepassword", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
+            String term = userLookupTerm(page, row);
             page.search(term);
             page.openChangePassword(term);
             Pages.ChangePasswordModal modal = new Pages.ChangePasswordModal(driver);
@@ -133,13 +115,14 @@ public final class TestCaseRegistry {
         register("user:edit", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            page.search(row.param1());
-            page.openEditUser(row.param1());
+            String term = userLookupTerm(page, row);
+            page.search(term);
+            page.openEditUser(term);
         });
         register("user:deactivate", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
+            String term = userLookupTerm(page, row);
             page.search(term);
             page.openDeactivateUser(term);
         });
@@ -914,6 +897,28 @@ public final class TestCaseRegistry {
      * version that asserts the outcome is written. The old code is in git history.
      *   assignplan:bulk, datastream:edit, department:activate, department:addmembers, department:create, department:deactivate, department:edit, esign:email, plan:clone, plan:delete, plan:edit, plan:expression, plan:status, ratetable:edit, team:activate, team:addmembers, team:create, team:deactivate, team:edit
      */
+
+    /**
+     * User to act on: the Excel/CSV value when one was given (or -Dexcel.user.search), otherwise the
+     * first user currently in the Users grid. Replaces the old hard-coded "Mayank" default, which
+     * does not exist in every tenant and made every edit/view/deactivate row time out.
+     */
+    private static String userLookupTerm(UsersPage page, TestCaseRow row) {
+        String term = row.param1();
+        if (term != null && !term.isBlank()) {
+            return term.trim();
+        }
+        try {
+            if (page.isGridLoaded()) {
+                term = page.getFirstRowValue("name");
+            }
+        } catch (Exception ignored) {
+        }
+        if (term == null || term.isBlank()) {
+            throw new SkipException("No user rows in the Users grid to run " + row.getTestCaseId() + " on.");
+        }
+        return term.trim();
+    }
 
     private TestCaseRegistry() {
     }

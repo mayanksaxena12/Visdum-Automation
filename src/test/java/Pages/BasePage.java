@@ -24,6 +24,7 @@ public abstract class BasePage {
     protected void click(By locator) {
         System.out.println("  [STEP] 🖱️ Click -> " + locator);
         wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+        recordStep("Click " + locator);
     }
 
     protected void type(By locator, String value) {
@@ -32,6 +33,19 @@ public abstract class BasePage {
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
         element.clear();
         element.sendKeys(value);
+        recordStep("Type into " + locator); // value deliberately not in the label (may be a password)
+    }
+
+    /**
+     * Adds a frame to the test's HTML replay. Called after every click/type/select so the replay
+     * actually plays step by step (before, only the final "Test Ended" frame was recorded).
+     * Disable with -Dvideo.steps=false to speed up long runs.
+     */
+    protected void recordStep(String label) {
+        if (Boolean.parseBoolean(System.getProperty("video.steps", "true"))) {
+            String text = label.length() > 140 ? label.substring(0, 140) + "…" : label;
+            utilities.ScreenRecorderUtil.captureFrame(driver, text);
+        }
     }
 
     protected void clearField(By locator) {
@@ -58,6 +72,7 @@ public abstract class BasePage {
         WebElement input = driver.switchTo().activeElement();
         input.sendKeys(option);
         input.sendKeys(Keys.ENTER);
+        recordStep("Select '" + option + "' in '" + placeholder + "'");
     }
 
     /**
@@ -70,6 +85,7 @@ public abstract class BasePage {
                 By.xpath("(//*[normalize-space()=" + xpathLiteral(placeholder) + "])[1]")));
         control.click();
         driver.switchTo().activeElement().sendKeys(Keys.ENTER);
+        recordStep("Select first option in '" + placeholder + "'");
     }
 
     protected String xpathLiteral(String value) {

@@ -333,6 +333,18 @@ public final class ExcelTestCaseReader {
         return true;
     }
 
+    /**
+     * True when Test Data is a bare value usable as a param: for sort/columnfilter an AG-Grid col-id
+     * like {@code email} or {@code employee_number}; otherwise a short single-line value with no
+     * "key: value", "=", ";", quotes or brackets.
+     */
+    private static boolean isPlainValue(String td, String scenarioToken) {
+        if (scenarioToken.equals("sort") || scenarioToken.equals("columnfilter")) {
+            return td.matches("[a-z][a-z0-9_]*");
+        }
+        return td.length() < 30 && !td.matches("(?s).*[\\n:=;'\"()\\[\\]].*");
+    }
+
     private static String defaultParam(String module, String scenarioToken, String testData) {
         if (testData != null && !testData.isBlank() && !testData.equalsIgnoreCase("N/A")) {
             String td = testData.trim();
@@ -341,16 +353,19 @@ public final class ExcelTestCaseReader {
                 if (!val.isBlank() && !val.contains("\n")) {
                     return val;
                 }
-            } else if (!td.contains("\n") && !td.contains("(") && td.length() < 30) {
+            } else if (isPlainValue(td, scenarioToken)) {
                 return td;
             }
+            // Anything else ("New Name: Test User Edit", "Role=Admin AND Currency=USD",
+            // "Filter: USD; Search: 'Ella'") is a description, not a lookup value or column id.
         }
         if (scenarioToken.equals("sort") || scenarioToken.equals("columnfilter")) {
             return "name"; // primary sortable/filterable column in every module grid
         }
         // search / view need a lookup term
         switch (module) {
-            case "User": return System.getProperty("excel.user.search", "Mayank");
+            // Blank -> the registry action uses the first user in the grid.
+            case "User": return System.getProperty("excel.user.search", "");
             case "Team": return System.getProperty("excel.team.search", "Sales");
             case "Department": return System.getProperty("excel.department.search", "Sales");
             case "DataStream": return System.getProperty("excel.datastream.search", "Deals");
