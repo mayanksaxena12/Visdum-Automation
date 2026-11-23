@@ -225,6 +225,7 @@ public class RefreshColumnsTest extends BaseTest {
      */
     @Test(priority = 6)
     public void verifySubmitTriggersAsyncProcessingAndDismissibleModal() {
+        utilities.ExecutionGuard.requireDestructiveTestsEnabled(); // Submit starts a bulk recalculation
         RawDataPage rawData = navigateToRawDataPage();
 
         if (!ensureEligibleStreamSelected(rawData)) {
@@ -261,6 +262,7 @@ public class RefreshColumnsTest extends BaseTest {
      */
     @Test(priority = 7)
     public void verifyRefreshColumnsCompletionMetricsAndGridRefetch() {
+        utilities.ExecutionGuard.requireDestructiveTestsEnabled(); // Submit starts a bulk recalculation
         RawDataPage rawData = navigateToRawDataPage();
 
         if (!ensureEligibleStreamSelected(rawData)) {

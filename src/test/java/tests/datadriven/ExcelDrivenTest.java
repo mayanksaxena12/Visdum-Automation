@@ -45,14 +45,14 @@ public class ExcelDrivenTest implements ITest {
     public Object[][] excelRows() {
         String path = System.getProperty("excel.file", DEFAULT_FILE);
         System.out.println(ExcelTestCaseReader.coverageSummary(path));
-        boolean allRows = Boolean.parseBoolean(System.getProperty("excel.all", "false"));
-        List<TestCaseRow> rows = allRows ? ExcelTestCaseReader.readAll(path) : ExcelTestCaseReader.readRunnable(path);
+        // MANDATE: Read 100% of the test cases from the Excel workbook regardless of Run column value.
+        List<TestCaseRow> rows = ExcelTestCaseReader.readAll(path);
 
         if (rows.isEmpty()) {
             String filterSheet = System.getProperty("excel.sheet", "").trim();
-            String msg = "No test cases marked with 'Run = Yes' found in Excel"
+            String msg = "No test cases found in Excel"
                     + (filterSheet.isEmpty() ? "" : " sheet '" + filterSheet + "'")
-                    + " (" + path + "). To run tests, set 'Run' column to 'Yes' in Excel, or pass -Dexcel.force=true.";
+                    + " (" + path + ").";
             System.out.println("[EXCEL RUNNER] " + msg);
             java.util.Map<String, String> data = new java.util.LinkedHashMap<>();
             data.put("Sheet", filterSheet.isEmpty() ? "All" : filterSheet);
@@ -69,25 +69,33 @@ public class ExcelDrivenTest implements ITest {
 
     @Test(dataProvider = "excelRows")
     public void execute(TestCaseRow row) throws Exception {
-        if (!row.isRun()) {
-            throw new SkipException("Skipped (Run != Yes in Excel): " + row.getDescription());
-        }
         String testTitle = "[" + row.get("Sheet") + "] " + row.getTestCaseId() + " - " + row.getDescription();
         currentName.set(testTitle);
 
         System.out.println("\n------------------------------------------------------------");
         System.out.println("[EXCEL ROW RUNNING] " + testTitle);
-        System.out.println("  Module: " + row.getModule() + " | Scenario: " + row.getScenario() + " | ActionKey: " + row.actionKey());
+        System.out.println("  Module: " + row.getModule() + " | Scenario: " + row.getScenario() + " | ActionKey: " + row.actionKey()
+                + " | RunMetadata: " + row.get("RunMetadata"));
 
         WebDriver driver = DriverFactory.getDriver();
         driver.get(ConfigReader.get("url"));
-        // Login-module actions run on the login page itself; every other module needs an
-        // authenticated session first.
-        if (!row.getModule().equalsIgnoreCase("Login")) {
+
+        // If organization module: login using Super Admin credentials.
+        // If login module: runs directly on the login page.
+        // Other business modules: login using standard tenant admin credentials.
+        if (row.getModule().equalsIgnoreCase("Organization")) {
+            String superUser = ConfigReader.get("super_admin.username", ConfigReader.get("username"));
+            String superPass = ConfigReader.get("super_admin.password", ConfigReader.get("password"));
+            new LoginPage(driver).login(superUser, superPass);
+        } else if (!row.getModule().equalsIgnoreCase("Login")) {
             new LoginPage(driver).login(ConfigReader.get("username"), ConfigReader.get("password"));
         }
 
         TestAction action = TestCaseRegistry.get(row.actionKey());
+        if (action == null) {
+            throw new SkipException("Skipped (manual): no automation mapped for '" + row.actionKey()
+                    + "' (" + row.getTestCaseId() + "). Add an entry to TestCaseRegistry to automate it.");
+        }
         action.run(driver, row);
     }
 

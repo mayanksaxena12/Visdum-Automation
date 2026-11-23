@@ -147,16 +147,18 @@ public abstract class AgGridListPage extends BasePage {
      * Performs a right-click (context-click) on the AG-Grid data table,
      * hovers/clicks the "Export" menu option, clicks "Excel Export", and triggers the export download.
      *
-     * @return boolean true if Export context menu and Excel Export action was successfully triggered
+     * @return true only if a new, non-empty spreadsheet file appeared in the download folder
+     *         ({@code test-output/downloads}) within {@code export.timeout.seconds} (default 30)
      */
     public boolean rightClickAndExport() {
-        // 1. Ensure grid is loaded
+        // 1. Ensure grid is loaded and has rendered either rows or its empty-state overlay
         wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.cssSelector(".ag-root-wrapper, .ag-theme-alpine, [role='grid']")));
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector(".ag-row, .ag-overlay-no-rows-wrapper, .ag-overlay-no-rows-center")));
 
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException ignored) {}
+        java.io.File downloadDir = new java.io.File("test-output/downloads");
+        java.util.Map<String, Long> before = snapshotDownloads(downloadDir);
 
         // 2. Locate an element inside the grid to right-click
         WebElement targetElement = null;
@@ -220,11 +222,66 @@ public abstract class AgGridListPage extends BasePage {
         // 8. Capture frame in video recording
         ScreenRecorderUtil.captureFrame(driver, "AG-Grid Context Menu: Export -> Excel Export Clicked");
 
-        // 9. Allow export request and download trigger to process
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException ignored) {}
+        // 9. Verify the export really produced a file (previously this always returned true)
+        int timeout = Integer.parseInt(System.getProperty("export.timeout.seconds", "30"));
+        java.io.File exported = waitForNewDownload(downloadDir, before, Duration.ofSeconds(timeout));
+        if (exported == null) {
+            System.err.println("[EXPORT] No new spreadsheet appeared in " + downloadDir.getAbsolutePath()
+                    + " within " + timeout + "s.");
+            return false;
+        }
+        boolean readable = isReadableSpreadsheet(exported);
+        System.out.println("[EXPORT] Downloaded " + exported.getName() + " (" + exported.length()
+                + " bytes, readable=" + readable + ")");
+        return readable;
+    }
 
-        return true;
+    private static java.util.Map<String, Long> snapshotDownloads(java.io.File dir) {
+        java.util.Map<String, Long> snap = new java.util.HashMap<>();
+        java.io.File[] files = dir.listFiles();
+        if (files != null) {
+            for (java.io.File f : files) {
+                snap.put(f.getName(), f.lastModified());
+            }
+        }
+        return snap;
+    }
+
+    /** Polls for a finished (not .crdownload/.tmp), non-empty .xlsx/.xls/.csv that is new or changed. */
+    private java.io.File waitForNewDownload(java.io.File dir, java.util.Map<String, Long> before, Duration timeout) {
+        try {
+            return new WebDriverWait(driver, timeout).pollingEvery(Duration.ofMillis(500)).until(d -> {
+                java.io.File[] files = dir.listFiles();
+                if (files == null) {
+                    return null;
+                }
+                for (java.io.File f : files) {
+                    String n = f.getName().toLowerCase();
+                    boolean spreadsheet = n.endsWith(".xlsx") || n.endsWith(".xls") || n.endsWith(".csv");
+                    Long old = before.get(f.getName());
+                    boolean isNew = old == null || f.lastModified() > old;
+                    if (spreadsheet && isNew && f.length() > 0) {
+                        return f;
+                    }
+                }
+                return null;
+            });
+        } catch (TimeoutException e) {
+            return null;
+        }
+    }
+
+    /** True if the file opens as a spreadsheet and has at least a header row. */
+    private static boolean isReadableSpreadsheet(java.io.File f) {
+        if (f.getName().toLowerCase().endsWith(".csv")) {
+            return f.length() > 0;
+        }
+        try (java.io.InputStream in = new java.io.FileInputStream(f);
+             org.apache.poi.ss.usermodel.Workbook wb = org.apache.poi.ss.usermodel.WorkbookFactory.create(in)) {
+            return wb.getNumberOfSheets() > 0 && wb.getSheetAt(0).getPhysicalNumberOfRows() > 0;
+        } catch (Exception e) {
+            System.err.println("[EXPORT] " + f.getName() + " is not a readable spreadsheet: " + e.getMessage());
+            return false;
+        }
     }
 }

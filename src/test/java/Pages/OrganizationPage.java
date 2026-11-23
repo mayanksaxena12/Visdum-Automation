@@ -55,6 +55,10 @@ public class OrganizationPage extends BasePage {
         driver.get(ConfigReader.get("url") + "/organization");
     }
 
+    public boolean isLoaded() {
+        return driver.getCurrentUrl().contains("organization") || isAddOrganizationButtonVisible();
+    }
+
     public boolean isAddOrganizationButtonVisible() {
         try {
             return wait.until(ExpectedConditions.visibilityOfElementLocated(addOrganizationBtn)).isDisplayed();

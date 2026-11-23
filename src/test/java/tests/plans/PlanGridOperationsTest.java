@@ -23,11 +23,10 @@ public class PlanGridOperationsTest extends PlansBaseTest {
     @Test(description = "Search box filters the AG-Grid plan rows")
     public void searchPlanInGrid() {
         PlansPage plansPage = new PlansPage(Base.DriverFactory.getDriver());
-        plansPage.searchPlan("Commission");
-        // Verify search input value persists
-        Assert.assertTrue(Base.DriverFactory.getDriver().getPageSource().contains("Commission")
-                || plansPage.isRowListed("Commission")
-                || true, "Search filter executed");
+        String term = System.getProperty("test.plan.search", "Commission");
+        plansPage.searchPlan(term);
+        Assert.assertTrue(plansPage.isRowListed(term),
+                "Expected a plan matching '" + term + "' to be listed after searching (set -Dtest.plan.search).");
         plansPage.clearSearch();
     }
 }

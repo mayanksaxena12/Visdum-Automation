@@ -14,7 +14,7 @@ public final class ExecutionGuard {
 
     public static void requireDestructiveTestsEnabled() {
         if (!isDestructiveTestsEnabled()) {
-            throw new SkipException("Set -Drun.destructive.tests=true to run data-changing user tests.");
+            throw new SkipException("Set -Drun.destructive.tests=true to run data-changing tests.");
         }
     }
 }

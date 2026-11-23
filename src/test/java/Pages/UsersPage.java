@@ -12,7 +12,7 @@ import org.openqa.selenium.WebDriver;
 public class UsersPage extends AgGridListPage {
 
     private final By searchBox = By.cssSelector("input[placeholder='Search'], input[placeholder='Search User']");
-    private final By addNewUser = By.xpath("//*[normalize-space()='Add New User']");
+    private final By addNewUser = By.xpath("//button[normalize-space()='Add New User' or normalize-space()='Add User' or normalize-space()='Create new user'] | //*[normalize-space()='Add New User']");
     private final By fetchUsersBtn = By.xpath("//button[normalize-space()='Fetch Users']");
     private final By userDataStreamsBtn = By.xpath("//button[normalize-space()='User Data Streams' or contains(.,'User Data Streams')]");
 

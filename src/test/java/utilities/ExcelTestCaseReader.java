@@ -66,6 +66,7 @@ public final class ExcelTestCaseReader {
         SHEET_MODULE.put("Esign", "Esign");
         SHEET_MODULE.put("Organization", "Organization");
         SHEET_MODULE.put("Organizations", "Organization");
+        SHEET_MODULE.put("organization creation", "Organization");
         SHEET_MODULE.put("Create Organization", "Organization");
     }
 
@@ -100,6 +101,7 @@ public final class ExcelTestCaseReader {
         if ((f.equals("datastream") || f.equals("datastreams") || f.equals("data")) && (s.equals("datastreams") || s.equals("datastream") || s.equals("data"))) return true;
         if ((f.equals("assignplan") || f.equals("assignplans") || f.equals("assign")) && (s.equals("assignplan") || s.equals("assignplans") || s.equals("plans"))) return true;
         if ((f.equals("esign") || f.equals("e-sign")) && (s.equals("esign") || s.equals("e-sign"))) return true;
+        if ((f.equals("organization") || f.equals("org") || f.equals("organizations")) && (s.contains("organization") || s.contains("org"))) return true;
         return false;
     }
 
@@ -149,6 +151,7 @@ public final class ExcelTestCaseReader {
                     data.put("Sheet", sheetName);
                     data.put("TestScenarioText", scenarioText);
                     data.put("TestData", testData);
+                    data.put("RunMetadata", (runRaw == null || runRaw.isBlank()) ? "BLANK" : runRaw.trim());
                     data.put("Param1", defaultParam(module, scenarioToken, testData));
 
                     rows.add(new TestCaseRow(tcId, module, scenarioToken, description, run, data));
@@ -161,13 +164,9 @@ public final class ExcelTestCaseReader {
     }
 
     public static List<TestCaseRow> readRunnable(String path) {
-        List<TestCaseRow> out = new ArrayList<>();
-        for (TestCaseRow row : readAll(path)) {
-            if (row.isRun()) {
-                out.add(row);
-            }
-        }
-        return out;
+        // As per mandate: Run column is metadata only and must NOT filter or drop test cases.
+        // Return 100% of the test cases from the Excel workbook.
+        return readAll(path);
     }
 
     /** Classifies free-text scenario/description into an automation scenario token (module-aware). */
@@ -246,7 +245,7 @@ public final class ExcelTestCaseReader {
         if (t.contains("change status")) return "status";
         if (t.contains("delete")) return "delete";
         if (t.contains("export") || t.contains("download")) return "export";
-        if (t.contains("tab") || t.contains("recent") || t.contains("draft") || t.contains("template")) return "tabs";
+        if (t.matches("(?s).*\btabs?\b.*") || t.contains("recent") || t.contains("draft") || t.contains("template")) return "tabs";
         if (t.contains("change password") || t.contains("password modal")) return "changepassword";
         if (t.contains("deactivate") || t.contains("inactivate")) return "deactivate";
         if (t.contains("create") || t.contains("add new") || t.contains("wizard") || t.contains("add plan") || t.contains("assign plan")) return "create";
@@ -327,20 +326,11 @@ public final class ExcelTestCaseReader {
     }
 
     private static boolean resolveRun(String runRaw, String module, String scenarioToken) {
-        boolean forceAll = Boolean.parseBoolean(System.getProperty("excel.force", "false"))
-                || Boolean.parseBoolean(System.getProperty("excel.run.all", "false"));
-        if (forceAll) {
-            String key = (module + ":" + scenarioToken).trim().toLowerCase();
-            return TestCaseRegistry.isMapped(key);
-        }
-
-        String r = runRaw.trim().toLowerCase();
-        if (!r.isEmpty()) {
-            return r.equals("yes") || r.equals("y") || r.equals("true") || r.equals("1");
-        }
-        // No explicit Run column or blank cell: default to running any row that has a registered automation
-        String key = (module + ":" + scenarioToken).trim().toLowerCase();
-        return TestCaseRegistry.isMapped(key);
+        // HIGHEST PRIORITY MANDATE:
+        // The Run column must NOT control test execution.
+        // Execute every test case regardless of its Run value (YES, NO, Blank, NULL, or any value).
+        // Run is metadata only, not an execution condition.
+        return true;
     }
 
     private static String defaultParam(String module, String scenarioToken, String testData) {

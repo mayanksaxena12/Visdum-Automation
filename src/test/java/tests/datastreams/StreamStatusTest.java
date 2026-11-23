@@ -99,14 +99,33 @@ public class StreamStatusTest extends DataStreamsBaseTest {
             // Deactivate
             dataStreams.openDeactivateStream(streamName);
             dataStreams.confirmStatusChange();
-            Assert.assertEquals(dataStreams.statusOf(streamName), "Inactive",
-                    "Expected stream status to become Inactive.");
+            boolean reactivated = false;
+            try {
+                Assert.assertEquals(dataStreams.statusOf(streamName), "Inactive",
+                        "Expected stream status to become Inactive.");
 
-            // Reactivate
-            dataStreams.openActivateStream(streamName);
-            dataStreams.confirmStatusChange();
-            Assert.assertEquals(dataStreams.statusOf(streamName), "Active",
-                    "Expected stream status to become Active again.");
+                // Reactivate
+                dataStreams.openActivateStream(streamName);
+                dataStreams.confirmStatusChange();
+                reactivated = true;
+                Assert.assertEquals(dataStreams.statusOf(streamName), "Active",
+                        "Expected stream status to become Active again.");
+            } finally {
+                // Never leave the shared stream Inactive if the test fails midway.
+                if (!reactivated) {
+                    try {
+                        dashboard.navigateToDataStreams();
+                        dataStreams.search(streamName);
+                        if ("Inactive".equalsIgnoreCase(dataStreams.statusOf(streamName))) {
+                            dataStreams.openActivateStream(streamName);
+                            dataStreams.confirmStatusChange();
+                        }
+                    } catch (Exception restoreFailure) {
+                        System.err.println(">>> [RESTORE FAILED] Stream '" + streamName
+                                + "' may still be Inactive: " + restoreFailure.getMessage());
+                    }
+                }
+            }
         }
     }
 }

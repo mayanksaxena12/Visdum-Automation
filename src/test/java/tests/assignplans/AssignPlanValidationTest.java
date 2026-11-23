@@ -19,10 +19,8 @@ public class AssignPlanValidationTest extends AssignPlansBaseTest {
         // Click next without selecting participant or dates
         wizard.clickNext();
 
-        Assert.assertTrue(wizard.hasValidationError("required") 
-                || !wizard.getValidationErrors().isEmpty() 
-                || wizard.isLoaded(),
-                "Validation error should prevent advancing to step 2");
+        Assert.assertTrue(wizard.waitForValidationErrors(),
+                "Validation errors should be shown and prevent advancing to step 2");
     }
 
     @Test(description = "Cancelling Assign Plan wizard navigates back to /plans/assign-plan")

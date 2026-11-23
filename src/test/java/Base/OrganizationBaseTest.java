@@ -18,9 +18,9 @@ public class OrganizationBaseTest {
         DriverFactory.getDriver();
         DriverFactory.getDriver().get(ConfigReader.get("url"));
 
-        // Read login credentials directly from config.properties
-        String username = ConfigReader.get("username");
-        String password = ConfigReader.get("password");
+        // Read login credentials directly from config.properties (prefers super admin for org management)
+        String username = ConfigReader.get("super_admin.username", ConfigReader.get("username"));
+        String password = ConfigReader.get("super_admin.password", ConfigReader.get("password"));
 
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             throw new IllegalStateException("Login credentials (username/password) missing in config.properties!");

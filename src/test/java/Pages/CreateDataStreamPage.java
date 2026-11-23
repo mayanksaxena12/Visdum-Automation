@@ -203,6 +203,22 @@ public class CreateDataStreamPage extends BasePage {
         return !driver.findElements(nextStepBtn).isEmpty();
     }
 
+    /** Waits (up to the default explicit wait) for a field error containing any of the texts. */
+    public boolean waitForFieldError(String... texts) {
+        try {
+            return wait.until(d -> {
+                for (String t : texts) {
+                    if (isFieldErrorVisible(t)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean isFieldErrorVisible(String text) {
         return !driver.findElements(By.xpath("//*[contains(@class,'fv-help-block') or contains(@class,'invalid-feedback') or contains(@class,'text-danger')][contains(text()," + xpathLiteral(text) + ")]")).isEmpty();
     }

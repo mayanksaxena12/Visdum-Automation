@@ -13,6 +13,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.ITest;
+import org.testng.SkipException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import utilities.ScreenRecorderUtil;
@@ -114,18 +115,10 @@ public class ForceEndPlanDataDrivenTest implements ITest {
         System.out.println("Actual Result: " + tc.actualResult);
         System.out.println("====================================================");
 
-        // Verification assertions
-        Assert.assertNotNull(tc.id, "Test Case ID must not be null");
-        Assert.assertFalse(tc.scenario.isEmpty(), "Scenario must not be empty");
-        Assert.assertFalse(tc.expectedResult.isEmpty(), "Expected result must be defined");
-        Assert.assertFalse(tc.actualResult.isEmpty(), "Actual result must be documented");
-
-        // Validate Status matches Pass
-        if ("Pass".equalsIgnoreCase(tc.status) || "Passed".equalsIgnoreCase(tc.status)) {
-            // Test verified successfully against UAT Org 94 specification
-            Assert.assertTrue(true, tc.id + " verified successfully");
-        } else {
-            Assert.fail(tc.id + " status is marked as: " + tc.status + ". Remarks: " + tc.remarks);
-        }
+        // P0 audit fix: this row used to PASS or FAIL based only on the Status cell a person typed
+        // into the spreadsheet; nothing touched the product. Report it honestly as not automated,
+        // carrying the recorded manual result so the matrix stays visible in the report.
+        throw new SkipException("Not automated (manual matrix row). Recorded manual status: '"
+                + tc.status + "'" + (tc.remarks == null || tc.remarks.isBlank() ? "" : ". Remarks: " + tc.remarks));
     }
 }

@@ -11,10 +11,10 @@ public class AssignPlanGridTest extends AssignPlansBaseTest {
     public void searchAssignedPlanParticipant() {
         AssignPlansPage assignPage = new AssignPlansPage(Base.DriverFactory.getDriver());
 
-        assignPage.searchAssignedPlan("Mayank");
-        Assert.assertTrue(Base.DriverFactory.getDriver().getPageSource().contains("Mayank") 
-                || assignPage.isRowListed("Mayank") 
-                || true, "Search executed on assigned plans table");
+        String term = System.getProperty("test.assignplan.search", "Mayank");
+        assignPage.searchAssignedPlan(term);
+        Assert.assertTrue(assignPage.isRowListed(term),
+                "Expected an assignment for '" + term + "' to be listed after searching (set -Dtest.assignplan.search).");
         assignPage.clearSearch();
     }
 }

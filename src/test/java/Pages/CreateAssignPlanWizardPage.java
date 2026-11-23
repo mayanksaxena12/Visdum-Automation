@@ -78,6 +78,15 @@ public class CreateAssignPlanWizardPage extends BasePage {
                 .toList();
     }
 
+    /** Waits (up to the default explicit wait) for at least one visible validation error. */
+    public boolean waitForValidationErrors() {
+        try {
+            return wait.until(d -> !getValidationErrors().isEmpty());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean hasValidationError(String expectedText) {
         return getValidationErrors().stream().anyMatch(e -> e.contains(expectedText));
     }

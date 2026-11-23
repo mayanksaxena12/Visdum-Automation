@@ -40,7 +40,7 @@ public class ResourceFormModal extends BasePage {
         try {
             return wait.until(ExpectedConditions.invisibilityOfElementLocated(nameInput));
         } catch (Exception e) {
-            return true;
+            return false; // still visible after the wait: the modal did NOT close
         }
     }
 

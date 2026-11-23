@@ -26,10 +26,8 @@ public class CreateDataStreamTest extends DataStreamsBaseTest {
 
         // Click next without entering stream name
         wizard.clickNextStep();
-        Assert.assertTrue(wizard.isFieldErrorVisible("Name")
-                        || wizard.isFieldErrorVisible("required")
-                        || wizard.isOpen(),
-                "Validation message should appear or stay on Step 1 when Stream Name is empty.");
+        Assert.assertTrue(wizard.waitForFieldError("Name", "required"),
+                "A required-field validation message should appear when Stream Name is empty.");
 
         wizard.clickCancel();
     }
@@ -46,9 +44,7 @@ public class CreateDataStreamTest extends DataStreamsBaseTest {
         wizard.enterStreamName("Invalid#Stream@Name!");
         wizard.clickNextStep();
 
-        Assert.assertTrue(wizard.isFieldErrorVisible("alphanumeric")
-                        || wizard.isFieldErrorVisible("characters")
-                        || wizard.isOpen(),
+        Assert.assertTrue(wizard.waitForFieldError("alphanumeric", "characters"),
                 "Validation message should indicate special characters are not allowed.");
 
         wizard.clickCancel();

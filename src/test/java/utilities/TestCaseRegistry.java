@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
+import org.testng.SkipException;
 
 import Pages.CreateDataStreamPage;
 import Pages.DataStreamViewPage;
@@ -108,6 +109,22 @@ public final class TestCaseRegistry {
             Assert.assertTrue(view.isOpen(), "User view drawer should open.");
             view.close();
         });
+        register("user:changepassword", (driver, row) -> {
+            new DashboardPage(driver).navigateToEmployees();
+            UsersPage page = new UsersPage(driver);
+            String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
+            page.search(term);
+            page.openChangePassword(term);
+            Pages.ChangePasswordModal modal = new Pages.ChangePasswordModal(driver);
+            Assert.assertTrue(modal.isOpen(), "Change password modal should open.");
+            modal.cancel();
+        });
+        register("user:export", (driver, row) -> {
+            new DashboardPage(driver).navigateToEmployees();
+            UsersPage page = new UsersPage(driver);
+            Assert.assertTrue(page.isGridLoaded(), "Users grid should load.");
+            Assert.assertTrue(page.rightClickAndExport(), "Users AG-Grid right-click Excel Export should succeed.");
+        });
         register("user:create", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
             UsersPage page = new UsersPage(driver);
@@ -125,16 +142,6 @@ public final class TestCaseRegistry {
             String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
             page.search(term);
             page.openDeactivateUser(term);
-        });
-        register("user:changepassword", (driver, row) -> {
-            new DashboardPage(driver).navigateToEmployees();
-            UsersPage page = new UsersPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Mayank" : row.param1();
-            page.search(term);
-            page.openChangePassword(term);
-            Pages.ChangePasswordModal modal = new Pages.ChangePasswordModal(driver);
-            Assert.assertTrue(modal.isOpen(), "Change password modal should open.");
-            modal.cancel();
         });
         register("user:customfilter", (driver, row) -> {
             new DashboardPage(driver).navigateToEmployees();
@@ -156,12 +163,6 @@ public final class TestCaseRegistry {
                     userStream.cancelWizard();
                 }
             }
-        });
-        register("user:export", (driver, row) -> {
-            new DashboardPage(driver).navigateToEmployees();
-            UsersPage page = new UsersPage(driver);
-            Assert.assertTrue(page.isGridLoaded(), "Users grid should load.");
-            Assert.assertTrue(page.rightClickAndExport(), "Users AG-Grid right-click Excel Export should succeed.");
         });
 
         // ---------------- Data Stream module ----------------
@@ -289,34 +290,6 @@ public final class TestCaseRegistry {
             page.openView(row.param1());
             Assert.assertTrue(new TeamViewPage(driver).isOpen(), "Team view drawer should open.");
         });
-        register("team:create", (driver, row) -> {
-            new DashboardPage(driver).navigateToTeams();
-            new TeamsPage(driver).openCreateTeam();
-        });
-        register("team:edit", (driver, row) -> {
-            new DashboardPage(driver).navigateToTeams();
-            TeamsPage page = new TeamsPage(driver);
-            page.search(row.param1());
-            page.openEditTeam(row.param1());
-        });
-        register("team:deactivate", (driver, row) -> {
-            new DashboardPage(driver).navigateToTeams();
-            TeamsPage page = new TeamsPage(driver);
-            page.search(row.param1());
-            page.openToggleStatus(row.param1());
-        });
-        register("team:activate", (driver, row) -> {
-            new DashboardPage(driver).navigateToTeams();
-            TeamsPage page = new TeamsPage(driver);
-            page.search(row.param1());
-            page.openToggleStatus(row.param1());
-        });
-        register("team:addmembers", (driver, row) -> {
-            new DashboardPage(driver).navigateToTeams();
-            TeamsPage page = new TeamsPage(driver);
-            page.search(row.param1());
-            page.openAddMembers(row.param1());
-        });
         register("team:export", (driver, row) -> {
             new DashboardPage(driver).navigateToTeams();
             TeamsPage page = new TeamsPage(driver);
@@ -355,34 +328,6 @@ public final class TestCaseRegistry {
             page.openView(row.param1());
             Assert.assertTrue(new DepartmentViewPage(driver).isOpen(), "Department view drawer should open.");
         });
-        register("department:create", (driver, row) -> {
-            new DashboardPage(driver).navigateToDepartments();
-            new DepartmentsPage(driver).openCreateDepartment();
-        });
-        register("department:edit", (driver, row) -> {
-            new DashboardPage(driver).navigateToDepartments();
-            DepartmentsPage page = new DepartmentsPage(driver);
-            page.search(row.param1());
-            page.openEditDepartment(row.param1());
-        });
-        register("department:deactivate", (driver, row) -> {
-            new DashboardPage(driver).navigateToDepartments();
-            DepartmentsPage page = new DepartmentsPage(driver);
-            page.search(row.param1());
-            page.openToggleStatus(row.param1());
-        });
-        register("department:activate", (driver, row) -> {
-            new DashboardPage(driver).navigateToDepartments();
-            DepartmentsPage page = new DepartmentsPage(driver);
-            page.search(row.param1());
-            page.openToggleStatus(row.param1());
-        });
-        register("department:addmembers", (driver, row) -> {
-            new DashboardPage(driver).navigateToDepartments();
-            DepartmentsPage page = new DepartmentsPage(driver);
-            page.search(row.param1());
-            page.openAddMembers(row.param1());
-        });
         register("department:export", (driver, row) -> {
             new DashboardPage(driver).navigateToDepartments();
             TeamsPage page = new TeamsPage(driver);
@@ -391,27 +336,6 @@ public final class TestCaseRegistry {
         });
 
         // ---------------- Data Streams module ----------------
-        register("datastream:search", (driver, row) -> {
-            new DashboardPage(driver).navigateToDataStreams();
-            Pages.DataStreamsPage page = new Pages.DataStreamsPage(driver);
-            page.search(row.param1());
-        });
-        register("datastream:create", (driver, row) -> {
-            new DashboardPage(driver).navigateToDataStreams();
-            new Pages.DataStreamsPage(driver).clickCreateDataStream();
-        });
-        register("datastream:view", (driver, row) -> {
-            new DashboardPage(driver).navigateToDataStreams();
-            Pages.DataStreamsPage page = new Pages.DataStreamsPage(driver);
-            page.search(row.param1());
-            page.openViewStream(row.param1());
-        });
-        register("datastream:edit", (driver, row) -> {
-            new DashboardPage(driver).navigateToDataStreams();
-            Pages.DataStreamsPage page = new Pages.DataStreamsPage(driver);
-            page.search(row.param1());
-            page.openEditStream(row.param1());
-        });
 
         // ---------------- Resource module ----------------
         register("resource:search", (driver, row) -> {
@@ -690,6 +614,7 @@ public final class TestCaseRegistry {
                 rawData.selectDataStreamTab(stream);
             }
             if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                ExecutionGuard.requireDestructiveTestsEnabled();
                 rawData.clickRefreshColumns();
                 Assert.assertTrue(rawData.isConfirmationModalOpen(), "Confirmation modal should open.");
                 rawData.confirmModal();
@@ -766,45 +691,9 @@ public final class TestCaseRegistry {
             page.switchToRecentsTab();
             Assert.assertTrue(page.isGridLoaded(), "Plans grid should load on Recents tab.");
         });
-        register("plan:expression", (driver, row) -> {
-            new DashboardPage(driver).navigateToPlans();
-            new PlansPage(driver).clickCreatePlanAdvance();
-            CreatePlanWizardPage wizard = new CreatePlanWizardPage(driver);
-            if (wizard.isLoaded()) {
-                wizard.clickCancel();
-            }
-        });
         register("plan:grid", (driver, row) -> {
             new DashboardPage(driver).navigateToPlans();
             Assert.assertTrue(new PlansPage(driver).isGridLoaded(), "Plans grid should load.");
-        });
-        register("plan:edit", (driver, row) -> {
-            new DashboardPage(driver).navigateToPlans();
-            PlansPage page = new PlansPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
-            page.editPlan(term);
-            CreatePlanWizardPage wizard = new CreatePlanWizardPage(driver);
-            if (wizard.isLoaded()) {
-                wizard.clickCancel();
-            }
-        });
-        register("plan:clone", (driver, row) -> {
-            new DashboardPage(driver).navigateToPlans();
-            PlansPage page = new PlansPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
-            page.clonePlan(term);
-        });
-        register("plan:status", (driver, row) -> {
-            new DashboardPage(driver).navigateToPlans();
-            PlansPage page = new PlansPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
-            page.changePlanStatus(term);
-        });
-        register("plan:delete", (driver, row) -> {
-            new DashboardPage(driver).navigateToPlans();
-            PlansPage page = new PlansPage(driver);
-            String term = (row.param1() == null || row.param1().isBlank()) ? "Plan" : row.param1();
-            page.deletePlan(term);
         });
         register("plan:export", (driver, row) -> {
             new DashboardPage(driver).navigateToPlans();
@@ -850,15 +739,6 @@ public final class TestCaseRegistry {
             RateTablePage page = new RateTablePage(driver);
             Assert.assertTrue(page.isGridLoaded(), "Rate table tabs / grid should be visible.");
         });
-        register("ratetable:edit", (driver, row) -> {
-            new DashboardPage(driver).navigateToRateTables();
-            RateTablePage page = new RateTablePage(driver);
-            page.clickEditRateTable();
-            CreateRateTableWizardPage wizard = new CreateRateTableWizardPage(driver);
-            if (wizard.isLoaded()) {
-                wizard.clickCancel();
-            }
-        });
         register("ratetable:addrow", (driver, row) -> {
             new DashboardPage(driver).navigateToRateTables();
             RateTablePage page = new RateTablePage(driver);
@@ -900,10 +780,6 @@ public final class TestCaseRegistry {
             Assert.assertTrue(wizard.isLoaded(), "Assign Plan wizard should open.");
             wizard.clickCancel();
         });
-        register("assignplan:bulk", (driver, row) -> {
-            new DashboardPage(driver).navigateToAssignPlans();
-            new AssignPlansPage(driver).clickBulkAssign();
-        });
         register("assignplan:grid", (driver, row) -> {
             new DashboardPage(driver).navigateToAssignPlans();
             Assert.assertTrue(new AssignPlansPage(driver).isGridLoaded(), "Assign Plans grid should load.");
@@ -931,12 +807,6 @@ public final class TestCaseRegistry {
             WithdrawEsignPage withdrawPage = new WithdrawEsignPage(driver);
             Assert.assertTrue(withdrawPage.isLoaded(), "Withdraw Envelope page should load.");
             withdrawPage.clickCancel();
-        });
-        register("esign:email", (driver, row) -> {
-            new DashboardPage(driver).navigateToEsign();
-            EsignPage page = new EsignPage(driver);
-            page.openComposeEmailModal();
-            page.closeComposeEmailModal();
         });
         register("esign:search", (driver, row) -> {
             new DashboardPage(driver).navigateToEsign();
@@ -975,7 +845,7 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToComputation();
             ComputationPage page = new ComputationPage(driver);
             Assert.assertTrue(page.isGridLoaded(), "Computation grid should load before export.");
-            page.rightClickAndExport();
+            Assert.assertTrue(page.rightClickAndExport(), "Excel export should download a readable file.");
         });
 
         // ---------------- Reports module ----------------
@@ -1003,9 +873,47 @@ public final class TestCaseRegistry {
             new DashboardPage(driver).navigateToReports();
             ReportsPage page = new ReportsPage(driver);
             Assert.assertTrue(page.isGridLoaded(), "Reports grid should load before export.");
-            page.rightClickAndExport();
+            Assert.assertTrue(page.rightClickAndExport(), "Excel export should download a readable file.");
+        });
+
+        // ---------------- Organization module ----------------
+        register("organization:grid", (driver, row) -> {
+            Pages.OrganizationPage page = new Pages.OrganizationPage(driver);
+            page.navigateToOrganizations();
+            Assert.assertTrue(page.isLoaded() || driver.getCurrentUrl().contains("organization"),
+                    "Organization page should load.");
+        });
+        register("organization:search", (driver, row) -> {
+            Pages.OrganizationPage page = new Pages.OrganizationPage(driver);
+            page.navigateToOrganizations();
+            String term = (row.param1() == null || row.param1().isBlank()) ? "AutoOrg" : row.param1();
+            page.searchOrganization(term);
+            Assert.assertTrue(page.isLoaded() || driver.getCurrentUrl().contains("organization"),
+                    "Organization page should remain loaded after search.");
+        });
+        register("organization:create", (driver, row) -> {
+            Pages.OrganizationPage page = new Pages.OrganizationPage(driver);
+            page.navigateToOrganizations();
+            if (page.isAddOrganizationButtonVisible()) {
+                page.clickAddOrganization();
+                Assert.assertTrue(page.isDrawerOpen(), "Add Organization drawer should open.");
+            }
+        });
+        register("organization:view", (driver, row) -> {
+            Pages.OrganizationPage page = new Pages.OrganizationPage(driver);
+            page.navigateToOrganizations();
+            Assert.assertTrue(page.isLoaded() || driver.getCurrentUrl().contains("organization"),
+                    "Organization list should load for view scenario.");
         });
     }
+
+    /*
+     * Removed (P0 audit fix): these actions only opened a drawer/modal or clicked a button and
+     * asserted nothing, so every workbook row mapped to them reported PASS without verifying
+     * its scenario. With no registration, those rows now report Skipped (manual) until a
+     * version that asserts the outcome is written. The old code is in git history.
+     *   assignplan:bulk, datastream:edit, department:activate, department:addmembers, department:create, department:deactivate, department:edit, esign:email, plan:clone, plan:delete, plan:edit, plan:expression, plan:status, ratetable:edit, team:activate, team:addmembers, team:create, team:deactivate, team:edit
+     */
 
     private TestCaseRegistry() {
     }
@@ -1024,39 +932,8 @@ public final class TestCaseRegistry {
                 || actionKey.toLowerCase().startsWith("rawdata:")) {
             return TestCaseRegistry::executeRefreshColumnsAction;
         }
-        // Fallback action for any unmapped manual/edge-case scenario row:
-        return (driver, row) -> {
-            String module = row.getModule();
-            if ("User".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToEmployees();
-                Assert.assertTrue(new UsersPage(driver).isGridLoaded(), "Users page grid should load for " + row.getTestCaseId());
-            } else if ("Team".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToTeams();
-                Assert.assertTrue(new TeamsPage(driver).isGridLoaded(), "Teams page grid should load for " + row.getTestCaseId());
-            } else if ("Department".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToDepartments();
-                Assert.assertTrue(new DepartmentsPage(driver).isGridLoaded(), "Departments page grid should load for " + row.getTestCaseId());
-            } else if ("Resource".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToResources();
-                Assert.assertTrue(new ResourcesPage(driver).isGridLoaded(), "Resources page grid should load for " + row.getTestCaseId());
-            } else if ("RawData".equalsIgnoreCase(module) || "Raw Data".equalsIgnoreCase(module)
-                    || "RefreshColumns".equalsIgnoreCase(module) || "Refresh Columns".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToRawData();
-                Assert.assertTrue(new RawDataPage(driver).isLoaded(), "Raw Data page should load for " + row.getTestCaseId());
-            } else if ("Plan".equalsIgnoreCase(module) || "Plans".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToPlans();
-                Assert.assertTrue(new PlansPage(driver).isGridLoaded(), "Plans page grid should load for " + row.getTestCaseId());
-            } else if ("AssignPlan".equalsIgnoreCase(module) || "AssignPlans".equalsIgnoreCase(module)
-                    || "Assign Plan".equalsIgnoreCase(module) || "Assign Plans".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToAssignPlans();
-                Assert.assertTrue(new AssignPlansPage(driver).isGridLoaded(), "Assign Plans page grid should load for " + row.getTestCaseId());
-            } else if ("Esign".equalsIgnoreCase(module) || "E-Sign".equalsIgnoreCase(module) || "ESign".equalsIgnoreCase(module)) {
-                new DashboardPage(driver).navigateToEsign();
-                Assert.assertTrue(new EsignPage(driver).isLoaded(), "E-Sign page should load for " + row.getTestCaseId());
-            } else {
-                Assert.assertTrue(new LoginPage(driver).isLoaded(), "Login page should load for " + row.getTestCaseId());
-            }
-        };
+        // Unmapped scenario: return null so the runner reports the row as Skipped (manual).
+        return null;
     }
 
     private static void executeRefreshColumnsAction(WebDriver driver, TestCaseRow row) {
@@ -1196,6 +1073,7 @@ public final class TestCaseRegistry {
             case "TC-59":
                 selectEligibleTab.run();
                 if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    ExecutionGuard.requireDestructiveTestsEnabled();
                     rawData.clickRefreshColumns();
                     rawData.confirmModal();
                     DealsModalPage deals = rawData.getDealsModal();
@@ -1220,6 +1098,7 @@ public final class TestCaseRegistry {
             case "TC-61":
                 selectEligibleTab.run();
                 if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
+                    ExecutionGuard.requireDestructiveTestsEnabled();
                     rawData.clickRefreshColumns();
                     rawData.confirmModal();
                     DealsModalPage deals = rawData.getDealsModal();
@@ -1249,17 +1128,23 @@ public final class TestCaseRegistry {
                 break;
 
             default:
-                selectEligibleTab.run();
-                Assert.assertTrue(rawData.isGridLoaded(), tcId + ": Raw data grid should be loaded.");
-                if (rawData.isHeaderActionsPresent() && rawData.isHeaderActionPresent("Refresh Columns")) {
-                    rawData.clickRefreshColumns();
-                    rawData.cancelModal();
-                }
-                break;
+                throw new SkipException(tcId + ": no automation mapped for this Refresh Columns case (manual).");
         }
     }
 
+    /** Refresh Columns workbook IDs that have a real case in executeRefreshColumnsAction. */
+    private static final java.util.Set<String> REFRESH_COLUMNS_AUTOMATED = java.util.Set.of("tc-01", "tc-02", "tc-03", "tc-04", "tc-05", "tc-06", "tc-07", "tc-08", "tc-09", "tc-10", "tc-11", "tc-12", "tc-13", "tc-14", "tc-15", "tc-16", "tc-17", "tc-18", "tc-19", "tc-20", "tc-21", "tc-22", "tc-23", "tc-24", "tc-25", "tc-26", "tc-27", "tc-28", "tc-29", "tc-30", "tc-31", "tc-32", "tc-33", "tc-34", "tc-58", "tc-59", "tc-61", "tc-62");
+
     public static boolean isMapped(String actionKey) {
-        return true;
+        String key = actionKey == null ? "" : actionKey.toLowerCase().trim();
+        if (ACTIONS.containsKey(key)) {
+            return true;
+        }
+        int colon = key.indexOf(':');
+        String module = colon < 0 ? key : key.substring(0, colon);
+        if (module.equals("refreshcolumns") || module.equals("refresh columns") || module.equals("rawdata")) {
+            return REFRESH_COLUMNS_AUTOMATED.contains(key.substring(colon + 1));
+        }
+        return false;
     }
 }

@@ -34,14 +34,8 @@ public final class TestCaseReader {
     }
 
     public static List<TestCaseRow> readRunnable(String path) {
-        List<TestCaseRow> all = readAll(path);
-        List<TestCaseRow> runnable = new ArrayList<>();
-        for (TestCaseRow row : all) {
-            if (row.isRun()) {
-                runnable.add(row);
-            }
-        }
-        return runnable;
+        // Run is metadata only: return all test cases regardless of Run value
+        return readAll(path);
     }
 
     public static List<TestCaseRow> readAll(String path) {
@@ -117,9 +111,8 @@ public final class TestCaseReader {
         String module = map.getOrDefault("Module", "").trim();
         String scenario = map.getOrDefault("Scenario", "").trim();
         String description = map.getOrDefault("Description", "").trim();
-        String runRaw = map.getOrDefault("Run", "").trim().toLowerCase();
-        boolean run = runRaw.equals("yes") || runRaw.equals("y") || runRaw.equals("true")
-                || runRaw.equals("1");
+        // Run column is metadata only; all test cases are executed
+        boolean run = true;
         return new TestCaseRow(id, module, scenario, description, run, map);
     }
 

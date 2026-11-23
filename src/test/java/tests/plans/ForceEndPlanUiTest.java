@@ -110,6 +110,8 @@ public class ForceEndPlanUiTest extends AssignPlansBaseTest {
 
     @Test(priority = 2, description = "FEP_003 & FEP_005: Warning banner appears when future earnings exist")
     public void testWarningBannerWhenFutureEarningsExist() {
+        // Submits a real End Plan request on a live assignment.
+        utilities.ExecutionGuard.requireDestructiveTestsEnabled();
         WebDriver driver = DriverFactory.getDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         AssignPlansPage page = new AssignPlansPage(driver);
@@ -144,7 +146,7 @@ public class ForceEndPlanUiTest extends AssignPlansBaseTest {
 
         // Verify either in-modal warning banner or collision alert is present
         boolean hasWarning = !driver.findElements(warningBanner).isEmpty();
-        boolean hasToast = !driver.findElements(By.xpath("//*[contains(text(),'Unable to terminate plan due to earning') or contains(@class,'Toastify') or contains(@class,'toast')]")).isEmpty();
+        boolean hasToast = !driver.findElements(By.xpath("//*[contains(text(),'Unable to terminate plan due to earning')]")).isEmpty();
         
         ScreenRecorderUtil.captureFrame(driver, "Step 7: Verification outcome - Warning: " + hasWarning + ", Toast: " + hasToast);
         Assert.assertTrue(hasWarning || hasToast, "Either in-modal warning banner or collision alert must appear");
@@ -160,6 +162,8 @@ public class ForceEndPlanUiTest extends AssignPlansBaseTest {
 
     @Test(priority = 3, description = "FEP_006: Force End Plan link opens Impact Preview Modal")
     public void testForceEndPlanLinkOpensImpactPreview() {
+        // Submits a real End Plan request on a live assignment.
+        utilities.ExecutionGuard.requireDestructiveTestsEnabled();
         WebDriver driver = DriverFactory.getDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         AssignPlansPage page = new AssignPlansPage(driver);
@@ -209,7 +213,8 @@ public class ForceEndPlanUiTest extends AssignPlansBaseTest {
             if (!cancelBtns.isEmpty()) {
                 js.executeScript("arguments[0].click();", cancelBtns.get(0));
             }
-            Assert.assertTrue(true, "Base state verified on target environment");
+            throw new org.testng.SkipException("Force End Plan link not shown for this participant; "
+                    + "no future-earnings collision in this environment, so FEP_006 could not be checked.");
         }
     }
 }
