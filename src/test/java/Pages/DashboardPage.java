@@ -41,17 +41,14 @@ public class DashboardPage {
 
     public void navigateToEmployees() {
         driver.get(utilities.ConfigReader.get("url") + "/users/employees");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /users/employees");
     }
 
     public void navigateToTeams() {
         driver.get(utilities.ConfigReader.get("url") + "/users/teams");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /users/teams");
     }
 
     public void navigateToDepartments() {
         driver.get(utilities.ConfigReader.get("url") + "/users/department");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /users/department");
     }
 
     // Data Menu Locators
@@ -62,37 +59,30 @@ public class DashboardPage {
 
     public void navigateToDataStreams() {
         driver.get(utilities.ConfigReader.get("url") + "/data/data-streams");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /data/data-streams");
     }
 
     public void navigateToRawData() {
         driver.get(utilities.ConfigReader.get("url") + "/data/raw-data");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /data/raw-data");
     }
 
     public void navigateToDealCredits() {
         driver.get(utilities.ConfigReader.get("url") + "/data/deal-credits");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /data/deal-credits");
     }
 
     public void navigateToPlans() {
         driver.get(utilities.ConfigReader.get("url") + "/plans/create-plan");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /plans/create-plan");
     }
 
     public void navigateToRateTables() {
         driver.get(utilities.ConfigReader.get("url") + "/plans/rate-table");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /plans/rate-table");
     }
 
     public void navigateToAssignPlans() {
         driver.get(utilities.ConfigReader.get("url") + "/plans/assign-plan");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /plans/assign-plan");
     }
 
     public void navigateToEsign() {
         driver.get(utilities.ConfigReader.get("url") + "/plans/e-sign");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /plans/e-sign");
     }
 
     // Settings / Resource Locators
@@ -103,7 +93,6 @@ public class DashboardPage {
         isLoaded();
         try {
             driver.get(utilities.ConfigReader.get("url") + "/settings");
-            utilities.ScreenRecorderUtil.captureFrame(driver, "Open /settings");
             wait.until(ExpectedConditions.elementToBeClickable(resourceTab)).click();
         } catch (Exception e) {
             try {
@@ -111,7 +100,6 @@ public class DashboardPage {
                 wait.until(ExpectedConditions.elementToBeClickable(resourceTab)).click();
             } catch (Exception ex) {
                 driver.get(utilities.ConfigReader.get("url") + "/settings");
-                utilities.ScreenRecorderUtil.captureFrame(driver, "Open /settings");
             }
         }
     }
@@ -120,12 +108,10 @@ public class DashboardPage {
       /** True once the authenticated dashboard is reachable (sidebar toggle present). */
         public void navigateToComputation() {
         driver.get(utilities.ConfigReader.get("url") + "/computation/compute");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /computation/compute");
     }
 
     public void navigateToReports() {
         driver.get(utilities.ConfigReader.get("url") + "/reports");
-        utilities.ScreenRecorderUtil.captureFrame(driver, "Open /reports");
     }
 
     public boolean isLoaded() {

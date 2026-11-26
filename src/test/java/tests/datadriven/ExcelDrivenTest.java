@@ -77,6 +77,14 @@ public class ExcelDrivenTest implements ITest {
         System.out.println("  Module: " + row.getModule() + " | Scenario: " + row.getScenario() + " | ActionKey: " + row.actionKey()
                 + " | RunMetadata: " + row.get("RunMetadata"));
 
+        // Decide first: a row with no automation is skipped without launching Chrome or logging in
+        // (previously every one of these rows cost a full browser start + login before skipping).
+        TestAction action = TestCaseRegistry.get(row.actionKey());
+        if (action == null) {
+            throw new SkipException("Skipped (manual): no automation mapped for '" + row.actionKey()
+                    + "' (" + row.getTestCaseId() + "). Add an entry to TestCaseRegistry to automate it.");
+        }
+
         WebDriver driver = DriverFactory.getDriver();
         driver.get(ConfigReader.get("url"));
 
@@ -91,11 +99,6 @@ public class ExcelDrivenTest implements ITest {
             new LoginPage(driver).login(ConfigReader.get("username"), ConfigReader.get("password"));
         }
 
-        TestAction action = TestCaseRegistry.get(row.actionKey());
-        if (action == null) {
-            throw new SkipException("Skipped (manual): no automation mapped for '" + row.actionKey()
-                    + "' (" + row.getTestCaseId() + "). Add an entry to TestCaseRegistry to automate it.");
-        }
         action.run(driver, row);
     }
 

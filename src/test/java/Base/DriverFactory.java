@@ -78,7 +78,12 @@ public class DriverFactory {
                 }
             }
 
-            DRIVER.set(driver);
+            // Record a replay frame for every click / type / navigation / JS click / Actions call,
+            // no matter which class performs it (see utilities.StepRecorderListener).
+            WebDriver recorded = new org.openqa.selenium.support.events.EventFiringDecorator<>(
+                    new utilities.StepRecorderListener(driver)).decorate(driver);
+
+            DRIVER.set(recorded);
         }
         return DRIVER.get();
     }

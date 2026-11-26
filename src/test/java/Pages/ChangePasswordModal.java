@@ -68,6 +68,40 @@ public class ChangePasswordModal extends BasePage {
             return false;
         }
     }
+
+    // ---- helpers for KM-009..KM-013 ----
+    private final By alertCheckbox = By.name("send_alert_email");
+
+    /** Types into New/Confirm password and clicks Update (validation runs; nothing saved if invalid). */
+    public void tryUpdate(String newPwd, String confirmPwd) {
+        type(newPassword, newPwd);
+        type(confirmPassword, confirmPwd);
+        click(update);
+    }
+
+    public boolean waitForError(String message) {
+        boolean shown = anyVisible(By.xpath("//span[@role='alert' and contains(normalize-space()," + xpathLiteral(message) + ")]"));
+        recordStep("Verify message '" + message + "' shown: " + shown);
+        return shown;
+    }
+
+    public boolean isAlertCheckboxVisible() {
+        return anyVisible(By.xpath("//label[normalize-space()='Send alert email to new user about their account']"));
+    }
+
+    public boolean isAlertChecked() {
+        return firstVisible(alertCheckbox).isSelected();
+    }
+
+    public void toggleAlert() {
+        firstVisible(alertCheckbox).click();
+        recordStep("Toggled 'Send alert email'");
+    }
+
+    public boolean isModalStillOpen() {
+        return anyVisible(newPassword);
+    }
+
 }
 
 

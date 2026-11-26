@@ -2,6 +2,7 @@ package Pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 /**
@@ -27,8 +28,19 @@ public class UserViewPage extends BasePage {
     }
 
     private String value(String label) {
-        return text(By.xpath("//li[.//span[normalize-space()=" + xpathLiteral(label) + "]]"
-                + "//span[contains(@class,'fs-6') and not(contains(@class,'text-gray-500'))]"));
+        // The value is the element right after its label ("Name" -> "QA alertoff ..."); the old
+        // class-based match did not fit the Name row on the live page.
+        String l = xpathLiteral(label);
+        By candidates = By.xpath("//*[normalize-space()=" + l + " and not(*)]/following-sibling::*[not(self::br)][1]"
+                + " | //li[.//span[normalize-space()=" + l + "]]//span[contains(@class,'fs-6') and not(contains(@class,'text-gray-500'))]");
+        // Other (hidden) lists on the page can have the same label, so take the first VISIBLE one.
+        return wait.ignoring(org.openqa.selenium.StaleElementReferenceException.class).until(d -> d.findElements(candidates).stream()
+                .filter(WebElement::isDisplayed).map(WebElement::getText).findFirst().orElse(null));
+    }
+
+    /** Value shown next to a label in the view drawer (e.g. "Last Updated At"). */
+    public String getField(String label) {
+        return value(label).trim();
     }
 
     public String getName() {
@@ -102,5 +114,35 @@ public class UserViewPage extends BasePage {
     public void close() {
         click(backButton);
     }
+
+    // ---- helpers for VU-007/VU-010 and MH-002..MH-005 ----
+    public boolean hasManagerHistoryLink() {
+        return anyVisible(By.xpath("//a[normalize-space()='View Manager History']"));
+    }
+
+    /** Manager History entries in display order: {timestamp, managerName}. */
+    public java.util.List<String[]> managerHistoryEntries() {
+        firstVisible(By.xpath("//h4[normalize-space()='Manager History']"));
+        java.util.List<String[]> out = new java.util.ArrayList<>();
+        for (org.openqa.selenium.WebElement card : driver.findElements(By.cssSelector("div[id^='version_']"))) {
+            if (!card.isDisplayed()) {
+                continue;
+            }
+            String ts = card.findElement(By.cssSelector("span.text-gray-400")).getText().trim();
+            String name = card.findElement(By.cssSelector("button.accordion-button")).getText().trim();
+            out.add(new String[] {ts, name});
+        }
+        recordStep("Manager History has " + out.size() + " entries");
+        return out;
+    }
+
+    public boolean isClosed() {
+        try {
+            return wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//button[normalize-space()='Back']")));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
 

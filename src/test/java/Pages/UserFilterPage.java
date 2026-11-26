@@ -60,4 +60,22 @@ public class UserFilterPage extends BasePage {
     public boolean isPanelOpen() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(applyFilters)).isDisplayed();
     }
+
+    // ---- helpers for CF-008 ----
+    /** Visible delete (trash) icons, one per filter criterion. */
+    public int criteriaCount() {
+        return (int) driver.findElements(By.cssSelector("i.fa-trash-can")).stream().filter(e -> e.isDisplayed()).count();
+    }
+
+    /** Adds another criterion with the "+ AND" button. */
+    public void addAndCriterion() {
+        click(By.xpath("//i[contains(@class,'fa-plus')]/parent::*[contains(normalize-space(),'AND')]"));
+    }
+
+    /** Deletes the first criterion (its trash icon). */
+    public void deleteFirstCriterion() {
+        firstVisible(By.cssSelector("i.fa-trash-can")).click();
+        recordStep("Deleted first filter criterion");
+    }
+
 }

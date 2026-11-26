@@ -2,6 +2,8 @@ package Pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 // import org.openqa.selenium.WebElement;
 // import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -55,8 +57,12 @@ public class DepartmentsPage extends AgGridListPage {
     public void openToggleStatus(String departmentIdentifier) {
         String index = rowIndexFor(departmentIdentifier);
         click(By.id("userAction" + index));
-        click(By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and "
-                + "(normalize-space()='Deactivate' or normalize-space()='Activate')]"));
+        By deactivate = actionMenuItem("Deactivate");
+        By activate = actionMenuItem("Activate");
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.visibilityOfElementLocated(deactivate),
+                ExpectedConditions.visibilityOfElementLocated(activate)));
+        click(driver.findElements(deactivate).stream().anyMatch(WebElement::isDisplayed) ? deactivate : activate);
     }
 
     // public void openView(String departmentIdentifier) {

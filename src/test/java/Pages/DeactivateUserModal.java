@@ -56,6 +56,38 @@ public class DeactivateUserModal extends BasePage {
             return false;
         }
     }
+
+    // ---- helpers for KM-014..KM-019 ----
+    public boolean isSubmitEnabled() {
+        return firstVisible(submit).isEnabled();
+    }
+
+    public String lastWorkingDayValue() {
+        return firstVisible(lastWorkingDay).getAttribute("value");
+    }
+
+    public boolean isPayoutQuestionVisible() {
+        return anyVisible(By.xpath("//label[contains(normalize-space(),'Do you want payouts to be processed')]"));
+    }
+
+    public boolean isPayoutSelected(boolean yes) {
+        return firstVisible(yes ? processPayoutYes : processPayoutNo).isSelected();
+    }
+
+    public void clickPayout(boolean yes) {
+        firstVisible(yes ? processPayoutYes : processPayoutNo).click();
+        recordStep("Chose payout " + (yes ? "Yes" : "No"));
+    }
+
+    /** True once the modal has closed (date input gone). */
+    public boolean isGone() {
+        try {
+            return wait.until(org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOfElementLocated(lastWorkingDay));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
 
 

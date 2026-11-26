@@ -143,7 +143,9 @@ public final class ExcelTestCaseReader {
                     if ("RefreshColumns".equalsIgnoreCase(module) || "Refresh Columns".equalsIgnoreCase(module)) {
                         scenarioToken = tcId.toLowerCase();
                     } else {
-                        scenarioToken = classify(module, scenarioText, description);
+                        scenarioToken = TestCaseRegistry.isMapped(TestCaseRegistry.idKey(module, tcId))
+                                ? "id-" + tcId.trim().toLowerCase()
+                                : classify(module, scenarioText, description);
                     }
                     boolean run = resolveRun(runRaw, module, scenarioToken);
 
@@ -170,6 +172,31 @@ public final class ExcelTestCaseReader {
     }
 
     /** Classifies free-text scenario/description into an automation scenario token (module-aware). */
+    /**
+     * For a Users-sheet description such as "Verify if email id is mandatory." returns the Create User
+     * Step 1 field it is about (name, email, reference, role, currency), or null when the row is not
+     * a "this field is required" check on one of those fields.
+     */
+    public static String userRequiredField(String description) {
+        if (description == null) {
+            return null;
+        }
+        String d = description.toLowerCase();
+        if (!(d.contains("mandatory") || d.contains("required"))) {
+            return null;
+        }
+        if (d.contains("not a mandatory") || d.contains("not mandatory") || d.contains("not required")
+                || d.contains("manager") || d.contains("password")) {
+            return null;
+        }
+        if (d.contains("reference")) return "reference";
+        if (d.contains("email")) return "email";
+        if (d.contains("currency")) return "currency";
+        if (d.matches("(?s).*\\brole\\b.*")) return "role";
+        if (d.matches("(?s).*\\bname\\b.*")) return "name";
+        return null;
+    }
+
     public static String classify(String module, String scenario, String description) {
         String t = (scenario + " " + description).toLowerCase();
         if ("Login".equalsIgnoreCase(module)) {
@@ -233,6 +260,9 @@ public final class ExcelTestCaseReader {
                 return "passwordlength";
             }
             return "manual"; // OTP / 2FA / resend / timer / forgot-password / SSO / profile
+        }
+        if ("User".equalsIgnoreCase(module) && userRequiredField(description) != null) {
+            return "requiredfield";
         }
         if (t.contains("expression") || t.contains("formula")) return "expression";
         if (t.contains("send envelope") || t.contains("send esign")) return "send";

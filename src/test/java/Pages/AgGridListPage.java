@@ -26,27 +26,139 @@ public abstract class AgGridListPage extends BasePage {
     }
  
     private By rowLocator(String identifier) {
+        String clean = identifier == null ? "" : identifier.trim().replaceAll("\\s+", " ");
         return By.xpath("//div[@role='row' and @row-index]"
-                + "[.//*[contains(normalize-space(.)," + xpathLiteral(identifier) + ")]]");
+                + "[.//*[contains(normalize-space(.)," + xpathLiteral(clean) + ")]]");
+    }
+
+    /**
+     * An item in the shared row action menu ({@code #globalDropMenu}). The app renders it in two
+     * styles: the plain Metronic one ({@code span.menu-link}) and the newer one
+     * ({@code button.vis-action-menu__item} with a {@code vis-action-menu__label} span) used by the
+     * Users grid. The old locator only knew the first, so Edit User / Change Password / Deactivate
+     * could never be clicked on Users.
+     */
+    protected By actionMenuItem(String label) {
+        String l = xpathLiteral(label);
+        return By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and normalize-space()=" + l + "]"
+                + " | //div[@id='globalDropMenu']//*[contains(@class,'vis-action-menu__item')]"
+                + "[.//span[contains(@class,'vis-action-menu__label') and normalize-space()=" + l + "]]");
     }
  
     /** Waits for the row containing {@code identifier} and returns its AG-Grid {@code row-index}. */
     protected String rowIndexFor(String identifier) {
-        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                rowLocator(identifier)));
-        return element.getAttribute("row-index");
+        for (int attempt = 1; ; attempt++) {
+            try {
+                WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                        rowLocator(identifier)));
+                return element.getAttribute("row-index");
+            } catch (org.openqa.selenium.StaleElementReferenceException stale) {
+                if (attempt >= 3) {
+                    throw stale;
+                }
+            }
+        }
     }
- 
-    /** Clicks the row's ellipsis button, then the named action in the shared dropdown menu. */
+
+    /**
+     * Clicks the row's ellipsis button, then the named action in the shared dropdown menu. The menu
+     * closes itself if the grid re-renders or scrolls while it is open, so if the item does not show
+     * up the kebab is clicked again (once) before giving up.
+     */
     protected void openAction(String identifier, String action) {
-        String index = rowIndexFor(identifier);
-        click(By.id("userAction" + index));
-        click(By.xpath("//div[@id='globalDropMenu']//span[contains(@class,'menu-link') and normalize-space()="
-                + xpathLiteral(action) + "]"));
+        waitForGridToSettle();
+        for (int attempt = 1; ; attempt++) {
+            String index = rowIndexFor(identifier);
+            click(By.id("userAction" + index));
+            try {
+                new WebDriverWait(driver, Duration.ofSeconds(6))
+                        .until(ExpectedConditions.elementToBeClickable(actionMenuItem(action)));
+                click(actionMenuItem(action));
+                return;
+            } catch (TimeoutException closed) {
+                if (attempt >= 2) {
+                    throw closed;
+                }
+                System.out.println("  [STEP] row menu closed before '" + action + "' could be clicked, reopening");
+                waitForGridToSettle();
+            }
+        }
+    }
+
+    /**
+     * Waits until the grid has stopped redrawing: no loading overlay, and the rendered rows are the
+     * same on two polls in a row. Bounded (max ~10s); never fails the test by itself.
+     */
+    public void waitForGridToSettle() {
+        final String[] last = {null};
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .pollingEvery(Duration.ofMillis(400))
+                    .ignoring(org.openqa.selenium.StaleElementReferenceException.class)
+                    .until(d -> {
+                        if (!d.findElements(By.cssSelector(".ag-overlay-loading-wrapper, .ag-overlay-loading-center")).isEmpty()) {
+                            last[0] = null;
+                            return false;
+                        }
+                        java.util.List<WebElement> rows = d.findElements(By.cssSelector(".ag-row"));
+                        boolean noRows = !d.findElements(By.cssSelector(".ag-overlay-no-rows-wrapper, .ag-overlay-no-rows-center")).isEmpty();
+                        if (rows.isEmpty() && !noRows) {
+                            last[0] = null;
+                            return false;
+                        }
+                        String signature = rows.size() + "|" + (rows.isEmpty() ? "" : rows.get(0).getText());
+                        boolean stable = signature.equals(last[0]);
+                        last[0] = signature;
+                        return stable;
+                    });
+        } catch (TimeoutException ignored) {
+            System.out.println("  [STEP] grid still changing after 10s, continuing");
+        }
+    }
+
+    /**
+     * After typing a search term: waits for the debounced server search to come back, i.e. every
+     * rendered row matches the term or the grid shows "no rows". Bounded (max 15s).
+     */
+    public void waitForSearchResults(String term) {
+        if (term == null || term.isBlank()) {
+            waitForGridToSettle();
+            return;
+        }
+        String t = term.trim().toLowerCase().replaceAll("\\s+", " ");
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(15))
+                    .pollingEvery(Duration.ofMillis(300))
+                    .ignoring(org.openqa.selenium.StaleElementReferenceException.class)
+                    .until(d -> {
+                        if (!d.findElements(By.cssSelector(".ag-overlay-no-rows-wrapper, .ag-overlay-no-rows-center")).isEmpty()) {
+                            return true;
+                        }
+                        // Rows are split across pinned/center containers: join text per row-index.
+                        java.util.Map<String, StringBuilder> byRow = new java.util.HashMap<>();
+                        for (WebElement r : d.findElements(By.cssSelector(".ag-row[row-index]"))) {
+                            byRow.computeIfAbsent(r.getAttribute("row-index"), k -> new StringBuilder())
+                                    .append(' ').append(r.getText());
+                        }
+                        if (byRow.isEmpty()) {
+                            return false;
+                        }
+                        for (StringBuilder text : byRow.values()) {
+                            if (!text.toString().toLowerCase().replaceAll("\\s+", " ").contains(t)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+        } catch (TimeoutException ignored) {
+            System.out.println("  [STEP] search results for '" + term + "' did not settle in 15s, continuing");
+        }
+        waitForGridToSettle();
     }
  
     /** Clicks the inline "View" button in the row's action cell to open the read-only drawer. */
     public void openView(String identifier) {
+        waitForGridToSettle();
         String index = rowIndexFor(identifier);
         click(By.xpath("//div[@id='userAction" + index + "']/ancestor::*[@role='gridcell'][1]"
                 + "//div[normalize-space()='View']"));
@@ -81,7 +193,18 @@ public abstract class AgGridListPage extends BasePage {
         } else {
             locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='" + colId + "']");
         }
-        return text(locator).trim();
+        String value = text(locator).trim();
+        if ("name".equalsIgnoreCase(colId)) {
+            // The cell renders the avatar initials above/before the name; the name is the last line.
+            String[] lines = value.split("\\R");
+            for (int i = lines.length - 1; i >= 0; i--) {
+                if (!lines[i].isBlank()) {
+                    value = lines[i].trim();
+                    break;
+                }
+            }
+        }
+        return value.replaceAll("\\s+", " ");
     }
  
     /** Clicks an AG-Grid column header to cycle its sort state (none -> ascending -> descending). */
@@ -129,8 +252,12 @@ public abstract class AgGridListPage extends BasePage {
 
     public boolean isGridLoaded() {
         try {
-            return wait.until(ExpectedConditions.presenceOfElementLocated(
+            boolean shown = wait.until(ExpectedConditions.presenceOfElementLocated(
                     By.cssSelector(".ag-root-wrapper, .ag-theme-alpine, [role='grid']"))).isDisplayed();
+            if (shown) {
+                waitForGridToSettle(); // rows load (and default filters re-fetch) after the grid shell appears
+            }
+            return shown;
         } catch (Exception e) {
             return !driver.findElements(By.cssSelector(".ag-root-wrapper, .ag-theme-alpine, [role='grid']")).isEmpty();
         }

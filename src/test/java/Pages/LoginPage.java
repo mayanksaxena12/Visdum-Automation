@@ -55,6 +55,7 @@ public class LoginPage extends BasePage {
             System.out.println("[AUTH] Logged in successfully.");
         } catch (Exception ignored) {
         }
+        recordStep("After login");
     }
 
     public void enterEmail(String value) {

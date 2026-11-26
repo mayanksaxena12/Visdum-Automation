@@ -23,8 +23,19 @@ public abstract class BasePage {
 
     protected void click(By locator) {
         System.out.println("  [STEP] 🖱️ Click -> " + locator);
-        wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
-        recordStep("Click " + locator);
+        // AG-Grid and React re-render rows after searches/refreshes. If the element we found is
+        // replaced before the click lands, find it again and retry instead of failing the test.
+        for (int attempt = 1; ; attempt++) {
+            try {
+                firstClickable(locator).click();
+                return;
+            } catch (org.openqa.selenium.StaleElementReferenceException stale) {
+                if (attempt >= 3) {
+                    throw stale;
+                }
+                System.out.println("  [STEP] element was re-rendered, retrying click (" + attempt + ")");
+            }
+        }
     }
 
     protected void type(By locator, String value) {
@@ -33,7 +44,6 @@ public abstract class BasePage {
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
         element.clear();
         element.sendKeys(value);
-        recordStep("Type into " + locator); // value deliberately not in the label (may be a password)
     }
 
     /**
@@ -56,7 +66,66 @@ public abstract class BasePage {
     }
 
     protected String text(By locator) {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
+        return firstVisible(locator).getText();
+    }
+
+    /**
+     * First element matching {@code locator} that is actually displayed. Pages often keep hidden
+     * copies of the same thing (a closed menu, a hidden modal, a label with the same text), and
+     * Selenium's visibilityOfElementLocated only looks at the FIRST match, so it timed out whenever
+     * that first match was a hidden one.
+     */
+    protected WebElement firstVisible(By locator) {
+        return wait.ignoring(org.openqa.selenium.StaleElementReferenceException.class).until(d -> {
+            for (WebElement e : d.findElements(locator)) {
+                try {
+                    if (e.isDisplayed()) {
+                        return e;
+                    }
+                } catch (org.openqa.selenium.StaleElementReferenceException ignored) {
+                }
+            }
+            return null;
+        });
+    }
+
+    /** First displayed AND enabled match (what elementToBeClickable checks, but over all matches). */
+    protected WebElement firstClickable(By locator) {
+        return wait.until(d -> {
+            for (WebElement e : d.findElements(locator)) {
+                if (e.isDisplayed() && e.isEnabled()) {
+                    return e;
+                }
+            }
+            return null;
+        });
+    }
+
+    /** True if any element matching {@code locator} becomes visible within the default wait. */
+    protected boolean anyVisible(By locator) {
+        try {
+            return firstVisible(locator) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * The clickable control of a react-select, found by the placeholder it shows (or its current
+     * value). The form also has <label>s with the same text ("Select Manager"); clicking a label
+     * does not open the dropdown, which is why some dropdown steps silently did nothing before.
+     */
+    protected By reactSelectControl(String placeholderOrValue) {
+        String l = xpathLiteral(placeholderOrValue);
+        return By.xpath("//*[contains(@class,'select__control')]"
+                + "[.//*[(contains(@class,'select__placeholder') or contains(@class,'select__single-value')"
+                + " or contains(@class,'select__multi-value__label')) and normalize-space()=" + l + "]]");
+    }
+
+    /** Clicks a react-select open and returns its (focused) search input. */
+    protected WebElement openReactSelect(String placeholderOrValue) {
+        click(reactSelectControl(placeholderOrValue));
+        return driver.switchTo().activeElement();
     }
 
     /**
@@ -66,13 +135,9 @@ public abstract class BasePage {
      */
     protected void selectReactOption(String placeholder, String option) {
         System.out.println("  [STEP] 🔽 Select Option '" + option + "' for Dropdown -> '" + placeholder + "'");
-        WebElement control = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("(//*[normalize-space()=" + xpathLiteral(placeholder) + "])[1]")));
-        control.click();
-        WebElement input = driver.switchTo().activeElement();
+        WebElement input = openReactSelect(placeholder);
         input.sendKeys(option);
-        input.sendKeys(Keys.ENTER);
-        recordStep("Select '" + option + "' in '" + placeholder + "'");
+        input.sendKeys(Keys.ENTER);
     }
 
     /**
@@ -81,11 +146,9 @@ public abstract class BasePage {
      * choices are fetched from the backend at runtime (e.g. CustomFilter's Operator/Value selects).
      */
     protected void selectFirstReactOption(String placeholder) {
-        WebElement control = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("(//*[normalize-space()=" + xpathLiteral(placeholder) + "])[1]")));
-        control.click();
-        driver.switchTo().activeElement().sendKeys(Keys.ENTER);
-        recordStep("Select first option in '" + placeholder + "'");
+        openReactSelect(placeholder);
+        // Options may be fetched after opening; wait for a real one before choosing it.
+        firstClickable(By.cssSelector(".select__menu .select__option")).click();
     }
 
     protected String xpathLiteral(String value) {

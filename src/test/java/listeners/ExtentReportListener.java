@@ -73,7 +73,7 @@ public class ExtentReportListener implements ITestListener, org.testng.ISuiteLis
         System.out.println("------------------------------------------------------------\n");
         test.log(Status.PASS, "Test passed successfully.");
 
-        WebDriver driver = DriverFactory.getDriver();
+        WebDriver driver = DriverFactory.hasDriver() ? DriverFactory.getDriver() : null; // never start a browser just to report
         ScreenRecorderUtil.RecordingResult recording = ScreenRecorderUtil.stopRecording(test.getModel().getName(), "PASS", driver);
         if (recording != null && recording.getFrameCount() > 0) {
             test.info(recording.toReportHtml());
@@ -91,7 +91,7 @@ public class ExtentReportListener implements ITestListener, org.testng.ISuiteLis
         test.log(Status.FAIL, result.getThrowable());
         attachScreenshot(test, result);
 
-        WebDriver driver = DriverFactory.getDriver();
+        WebDriver driver = DriverFactory.hasDriver() ? DriverFactory.getDriver() : null; // never start a browser just to report
         ScreenRecorderUtil.RecordingResult recording = ScreenRecorderUtil.stopRecording(test.getModel().getName(), "FAIL", driver);
         if (recording != null && recording.getFrameCount() > 0) {
             test.info(recording.toReportHtml());
@@ -194,7 +194,7 @@ public class ExtentReportListener implements ITestListener, org.testng.ISuiteLis
     }
 
     private void attachScreenshot(ExtentTest test, ITestResult result) {
-        WebDriver driver = DriverFactory.getDriver();
+        WebDriver driver = DriverFactory.hasDriver() ? DriverFactory.getDriver() : null; // never start a browser just to report
         if (driver == null || !(driver instanceof TakesScreenshot)) {
             return;
         }
