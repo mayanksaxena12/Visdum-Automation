@@ -117,8 +117,23 @@ public final class TestCaseRegistry {
             Assert.assertFalse(m.isEmpty(), "USV-003: 'User Column & Orders' should list mappings.");
             Assert.assertTrue(m.stream().anyMatch(r -> r[1].endsWith("*")), "USV-003: required fields should be marked with *.");
         });
-        registerId("User", "USV-004", (driver, row) -> Assert.assertTrue(
-                streamView(driver).isSectionVisible("Criterias"), "USV-004: 'Criterias' section should be shown."));
+        registerId("User", "USV-004", (driver, row) -> {
+            // _UserStreamDetailView.tsx renders "Criterias" only when the saved stream has criteria.
+            if (!streamView(driver).isSectionVisible("Criterias")) {
+                throw new SkipException("USV-004: this tenant's User Data Stream has no criteria, and the 'Criterias'"
+                        + " section is only shown when criteria exist. Add a criteria to the stream to run this check.");
+            }
+        });
+        registerId("User", "USV-001", (driver, row) -> {
+            Pages.UserStreamWizardPage w = streamView(driver);
+            Assert.assertTrue(w.isSectionVisible("User Source"), "USV-001: the stream view should show 'User Source'.");
+            Assert.assertTrue(w.isSectionVisible("User Column & Orders"), "USV-001: the stream view should show 'User Column & Orders'.");
+        });
+        registerId("User", "USV-005", (driver, row) -> {
+            Pages.UserStreamWizardPage w = streamView(driver);
+            w.clickViewBack();
+            Assert.assertTrue(w.isViewDrawerClosed(), "USV-005: Back should close the stream view.");
+        });
 
         registerId("User", "SS1-001", (driver, row) -> {
             Pages.UserStreamWizardPage w = newStreamWizard(driver);
@@ -144,8 +159,12 @@ public final class TestCaseRegistry {
         }
         registerId("User", "SS1-007", (driver, row) -> {
             Pages.UserStreamWizardPage w = newStreamWizard(driver);
+            w.chooseSourceType("Connected app");
             w.next();
-            Assert.assertTrue(w.isToastVisible("Please choose app to proceed"), "SS1-007: an error should ask to choose an app.");
+            // 'Choose App' is a required react-select: the browser blocks Next with "Please fill out this
+            // field." on it, so the app's own "Please choose app..." toast does not appear.
+            boolean blocked = w.isRequiredSelectEmpty("platform_id") || w.isToastVisible("Please choose app to proceed");
+            Assert.assertTrue(blocked, "SS1-007: Next should be blocked with a prompt to choose an app.");
             Assert.assertEquals(w.currentStepTitle(), "Stream Details", "SS1-007: must stay on Stream Details.");
         });
         registerId("User", "SS1-008", (driver, row) -> {
@@ -196,7 +215,7 @@ public final class TestCaseRegistry {
             Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 2);
             w.previous();
             Assert.assertTrue(w.waitForStep("Stream Details"), "SS2-009: Previous should return to Stream Details.");
-            Assert.assertFalse(w.selectedApp().isEmpty(), "SS2-009: the chosen app should still be selected.");
+            Assert.assertFalse(w.waitForSelectedApp().isEmpty(), "SS2-009: the chosen app should still be selected.");
         });
         registerId("User", "SS2-010", (driver, row) -> {
             Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 3);
@@ -205,6 +224,14 @@ public final class TestCaseRegistry {
 
         registerId("User", "SS3-001", (driver, row) -> Assert.assertTrue(
                 streamWizardAt(driver, row, 3).isAddCriteriaVisible(), "SS3-001: 'Add New Criteria' should be shown."));
+        registerId("User", "SS3-002", (driver, row) -> {
+            Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 3);
+            if (w.criteriaCount() == 0) {
+                w.addCriteria();
+            }
+            java.util.List<String> opts = w.criteriaFilterOptions();
+            Assert.assertFalse(opts.isEmpty(), "SS3-002: the criteria 'Filter' dropdown should list the source columns.");
+        });
         registerId("User", "SS3-003", (driver, row) -> {
             Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 3);
             w.addCriteria();
@@ -240,8 +267,21 @@ public final class TestCaseRegistry {
                 streamWizardAt(driver, row, 4).userSourceName().isBlank(), "SS4-002: User Source should be summarised."));
         registerId("User", "SS4-003", (driver, row) -> Assert.assertFalse(
                 streamWizardAt(driver, row, 4).mappingRows().isEmpty(), "SS4-003: column mappings should be summarised."));
-        registerId("User", "SS4-004", (driver, row) -> Assert.assertTrue(
-                streamWizardAt(driver, row, 4).isSectionVisible("Criterias"), "SS4-004: 'Criterias' should be summarised."));
+        registerId("User", "SS4-001", (driver, row) -> {
+            Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 4);
+            Assert.assertTrue(w.isStepperCurrent("Review & Submit"), "SS4-001: Review & Submit should be the active step.");
+            Assert.assertTrue(w.isSectionVisible("User Source"), "SS4-001: the summary should show 'User Source'.");
+            Assert.assertTrue(w.isSectionVisible("User Column & Orders"), "SS4-001: the summary should show the column mapping.");
+        });
+        registerId("User", "SS4-004", (driver, row) -> {
+            // The summary lists criteria only when there are some: add one complete rule first.
+            Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 3);
+            w.addCriteria();
+            w.fillFirstCriteriaRule();
+            w.next();
+            Assert.assertTrue(w.waitForStep("Review & Submit"), "SS4-004: should reach 'Review & Submit' with one criteria.");
+            Assert.assertTrue(w.isSectionVisible("Criterias"), "SS4-004: 'Criterias' should be summarised.");
+        });
         registerId("User", "SS4-006", (driver, row) -> {
             Pages.UserStreamWizardPage w = streamWizardAt(driver, row, 4);
             w.previous();
@@ -268,6 +308,14 @@ public final class TestCaseRegistry {
             if (f.rowsWithIndicator("bg-warning") == 0) {
                 throw new SkipException("FU-003: no modified users in the connected source right now.");
             }
+        });
+        registerId("User", "FU-004", (driver, row) -> {
+            Pages.FetchUsersPage f = fetchUsersWithRows(driver);
+            String email = f.firstRowEmail();
+            if (email.isEmpty()) {
+                throw new SkipException("FU-004: the fetched users have no e-mail to search for.");
+            }
+            Assert.assertTrue(f.searchAndCheckRows(email), "FU-004: searching '" + email + "' should show only matching users.");
         });
         registerId("User", "FU-005", (driver, row) -> {
             Pages.FetchUsersPage f = fetchUsersWithRows(driver);
@@ -459,10 +507,8 @@ public final class TestCaseRegistry {
                     "MH-003: every entry should have a 'YYYY-MM-DD HH:MM:SS' timestamp.");
         });
         registerId("User", "MH-004", (driver, row) -> {
-            java.util.List<String[]> e = managerHistory(driver, row);
-            if (e.size() < 2) {
-                throw new SkipException("MH-004: needs a user with 2+ manager history entries.");
-            }
+            @SuppressWarnings("unchecked")
+            java.util.List<String[]> e = (java.util.List<String[]>) userWithManagerHistory(driver, row, 2)[1];
             for (int i = 1; i < e.size(); i++) {
                 Assert.assertTrue(e.get(i - 1)[0].compareTo(e.get(i)[0]) >= 0, "MH-004: entries should be latest first.");
             }
@@ -498,10 +544,30 @@ public final class TestCaseRegistry {
             m.cancel();
         });
         registerId("User", "KM-016", (driver, row) -> {
-            Pages.DeactivateUserModal m = openDeactivate(driver, row);
-            if (!m.isPayoutQuestionVisible()) {
-                m.cancel();
-                throw new SkipException("KM-016: the payout question only shows for users on a plan; pass -Dexcel.user.search=<user with a plan>.");
+            // The payout question is only asked for a user on a plan (UserForm.tsx: has_plan). Try the
+            // first few users in the grid until one has it; Cancel is used, nobody is deactivated.
+            Pages.DeactivateUserModal m = null;
+            String tried = "";
+            for (int i = 0; i < 5 && m == null; i++) {
+                UsersPage page = usersPage(driver);
+                String name = page.getRowValue(i, "name");
+                if (name.isBlank()) {
+                    break;
+                }
+                tried += (tried.isEmpty() ? "" : ", ") + name;
+                page.search(name);
+                page.openDeactivateUser(name);
+                Pages.DeactivateUserModal candidate = new Pages.DeactivateUserModal(driver);
+                Assert.assertTrue(candidate.isOpen(), "Deactivate popup should open.");
+                if (candidate.hasPayoutQuestion(5)) {
+                    m = candidate;
+                } else {
+                    candidate.cancel();
+                }
+            }
+            if (m == null) {
+                throw new SkipException("KM-016: none of the first users (" + tried + ") is on a plan, and the payout"
+                        + " question is only asked for users on a plan. Pass -Dexcel.user.search=<user with a plan>.");
             }
             m.clickPayout(false);
             Assert.assertTrue(m.isPayoutSelected(false) && !m.isPayoutSelected(true), "KM-016: choosing No should clear Yes.");
@@ -612,9 +678,14 @@ public final class TestCaseRegistry {
         registerId("User", "TS_11_TC_15", (driver, row) -> {
             Pages.CreateUserPage form = openCreateUserAtStep(driver, 2);
             form.selectFirstOption("Select Manager");
+            // Selecting a manager shows a required Effective Date that the form pre-fills (first day of
+            // the financial month), so it has to be cleared to see the "required" validation.
+            Assert.assertTrue(form.isEffectiveDateRequired(),
+                    "TS_11_TC_15: selecting a manager should show a required 'Effective Date' field.");
+            form.clearManagerEffectiveDate();
             form.clickNextStep();
             Assert.assertTrue(form.waitForValidationMessage("Manager effective date is required when manager is selected"),
-                    "TS_11_TC_15: selecting a manager should make Manager Effective Date mandatory.");
+                    "TS_11_TC_15: Next with the Effective Date empty should show it is mandatory.");
         });
         // -- Step 3 password rules (validation blocks Submit, so no user is created) --
         for (String[] v : new String[][] {
@@ -654,7 +725,7 @@ public final class TestCaseRegistry {
         registerId("User", "EU-001", (driver, row) -> {
             Pages.CreateUserPage form = openEditUser(driver, row);
             for (String f : new String[] {"name", "email", "user_reference_id"}) {
-                String value = form.inputValue(f);
+                String value = form.prefilledValue(f);
                 Assert.assertTrue(value != null && !value.isBlank(), "EU-001: '" + f + "' should be pre-filled.");
             }
             Assert.assertFalse(form.isDropdownEmpty("Select Role"), "EU-001: Role should be pre-selected.");
@@ -686,7 +757,8 @@ public final class TestCaseRegistry {
             Assert.assertEquals(form.managerEffectiveDateValue(), mgr[2], "EU-008: Manager Effective Date should be pre-filled.");
         });
         registerId("User", "EU-009", (driver, row) -> {
-            Pages.CreateUserPage form = openEditUser(driver, row);
+            String name = (String) userWithManagerHistory(driver, row, 1)[0];
+            Pages.CreateUserPage form = openEditUserByName(driver, name);
             form.clickNextStep();
             if (!form.isTextVisible("View manager history")) {
                 throw new SkipException("EU-009: this user has no manager history; pass -Dexcel.user.search=<user with manager history>.");
@@ -1745,8 +1817,18 @@ public final class TestCaseRegistry {
     private static String userLookupTerm(UsersPage page, TestCaseRow row) {
         String term = row.param1();
         if (term != null && !term.isBlank()) {
-            return term.trim();
+            // The workbook's Test Data is often a description ("Change Password modal open",
+            // "3 manager history entries"), not a user. Use it only if it finds a user in the grid.
+            term = term.trim();
+            page.search(term);
+            if (page.renderedRowCount() > 0) {
+                return term;
+            }
+            System.out.println("  [DATA] " + row.getTestCaseId() + ": Test Data '" + term
+                    + "' is not a user in the grid; using the first user instead.");
+            page.search("");
         }
+        term = null;
         try {
             if (page.isGridLoaded()) {
                 term = page.getFirstRowValue("name");
@@ -1820,13 +1902,16 @@ public final class TestCaseRegistry {
         page.openEditUser(userName);
         Pages.CreateUserPage form = new Pages.CreateUserPage(driver);
         Assert.assertTrue(form.isDrawerTitle("Edit User"), "Edit User drawer should open.");
+        // The user's data is loaded after the drawer opens: wait for it, or a later typed value
+        // can be overwritten by the late pre-fill.
+        form.prefilledValue("name");
         return form;
     }
 
     /** {name, manager, managerEffectiveDate} of a user that has a manager, read from the View drawer. */
     private static String[] managerOfFirstUser(WebDriver driver, TestCaseRow row) {
-        UsersPage page = usersPage(driver);
-        String term = userLookupTerm(page, row);
+        String term = usersWithManager(driver, row, 1).get(0);
+        UsersPage page = new UsersPage(driver);
         page.search(term);
         page.openView(term);
         UserViewPage view = new UserViewPage(driver);
@@ -1837,6 +1922,71 @@ public final class TestCaseRegistry {
             throw new SkipException(row.getTestCaseId() + ": user '" + term + "' has no manager; pass -Dexcel.user.search=<user with a manager>.");
         }
         return new String[] {term, manager, date};
+    }
+
+    /**
+     * Up to {@code max} users that have a manager, for the manager / manager-history rows: the row's
+     * Test Data user when it finds one, otherwise users whose Manager column is filled in the grid
+     * (sorting by Manager when none of the rendered rows has one). Skips when nobody has a manager.
+     */
+    private static java.util.List<String> usersWithManager(WebDriver driver, TestCaseRow row, int max) {
+        UsersPage page = usersPage(driver);
+        String given = row.param1();
+        if (given != null && !given.isBlank()) {
+            page.search(given.trim());
+            if (page.renderedRowCount() > 0) {
+                return java.util.List.of(given.trim());
+            }
+            page.search("");
+        }
+        java.util.List<Integer> idx = page.rowIndexesWithValue("manager");
+        for (int sortClicks = 0; idx.isEmpty() && sortClicks < 2; sortClicks++) {
+            page.sortByColumn("manager"); // ascending, then descending: one of them brings managers up
+            page.waitForGridToSettle();
+            idx = page.rowIndexesWithValue("manager");
+        }
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (int i : idx) {
+            if (names.size() >= max) {
+                break;
+            }
+            String name = page.getRowValue(i, "name");
+            if (!name.isBlank() && !names.contains(name)) {
+                names.add(name);
+            }
+        }
+        if (names.isEmpty()) {
+            throw new SkipException(row.getTestCaseId() + ": no user in the Users grid has a manager.");
+        }
+        System.out.println("  [DATA] " + row.getTestCaseId() + ": users with a manager to try: " + names);
+        return names;
+    }
+
+    /**
+     * {name, entries} for the first user (of up to 5 with a manager) whose Manager History has at least
+     * {@code minEntries} entries; the View drawer is left open on that user's Manager History.
+     */
+    private static Object[] userWithManagerHistory(WebDriver driver, TestCaseRow row, int minEntries) {
+        java.util.List<String> candidates = usersWithManager(driver, row, 5);
+        for (String name : candidates) {
+            UsersPage page = usersPage(driver);
+            page.search(name);
+            page.openView(name);
+            UserViewPage view = new UserViewPage(driver);
+            Assert.assertTrue(view.isOpen(), "User view drawer should open.");
+            if (!view.hasManagerHistoryLink(5)) {
+                continue;
+            }
+            view.openManagerHistory();
+            Assert.assertTrue(view.isManagerHistoryOpen(), "Manager History should open.");
+            java.util.List<String[]> entries = view.managerHistoryEntries();
+            if (entries.size() >= minEntries) {
+                return new Object[] {name, entries};
+            }
+        }
+        throw new SkipException(row.getTestCaseId() + ": none of " + candidates + " has "
+                + (minEntries > 1 ? minEntries + "+ manager history entries" : "manager history")
+                + "; pass -Dexcel.user.search=<user with manager history>.");
     }
 
     private static String currentRoleOrPlaceholder(Pages.CreateUserPage form) {
@@ -1917,14 +2067,9 @@ public final class TestCaseRegistry {
         return view;
     }
 
+    @SuppressWarnings("unchecked")
     private static java.util.List<String[]> managerHistory(WebDriver driver, TestCaseRow row) {
-        UserViewPage view = openViewDrawer(driver, row);
-        if (!view.hasManagerHistoryLink()) {
-            throw new SkipException(row.getTestCaseId() + ": this user has no manager history; pass -Dexcel.user.search=<user with manager history>.");
-        }
-        view.openManagerHistory();
-        Assert.assertTrue(view.isManagerHistoryOpen(), "Manager History should open.");
-        java.util.List<String[]> entries = view.managerHistoryEntries();
+        java.util.List<String[]> entries = (java.util.List<String[]>) userWithManagerHistory(driver, row, 1)[1];
         Assert.assertFalse(entries.isEmpty(), row.getTestCaseId() + ": Manager History should list entries.");
         return entries;
     }
@@ -1984,20 +2129,21 @@ public final class TestCaseRegistry {
         return apps;
     }
 
-    /**
-     * The wizard at the given step (1-4). Uses the existing stream (edit mode, already valid) when
-     * there is one, otherwise picks the first connected app and maps the required fields.
-     */
+    /** The wizard at the given step (1-4): a new stream from a connected app, required fields mapped. */
     private static Pages.UserStreamWizardPage streamWizardAt(WebDriver driver, TestCaseRow row, int step) {
-        boolean edit = streamExists(driver);
-        Pages.UserStreamWizardPage w = new Pages.UserStreamWizardPage(driver);
-        w.openWizard(ConfigReader.get("url"), edit);
-        if (w.selectedApp().isEmpty()) {
-            if (w.appOptions().isEmpty()) {
-                throw new SkipException(row.getTestCaseId() + ": no CRM is connected in this tenant.");
-            }
-            w.chooseFirstApp();
+        // Always a new (add-mode) stream from a connected app, so it does not depend on how the saved
+        // stream is set up (UAT's uses a Base view) and nothing is saved: Submit is never clicked.
+        // Salesforce is preferred (the workbook's steps are written for it); HubSpot is avoided
+        // because it has no Define Criteria step.
+        Pages.UserStreamWizardPage w = newStreamWizard(driver);
+        w.chooseSourceType("Connected app");
+        java.util.List<String> apps = w.appOptions();
+        if (apps.isEmpty()) {
+            throw new SkipException(row.getTestCaseId() + ": no app is connected in this tenant.");
         }
+        String app = apps.stream().filter(a -> a.equalsIgnoreCase("Salesforce")).findFirst()
+                .orElse(apps.stream().filter(a -> !a.equalsIgnoreCase("HubSpot")).findFirst().orElse(apps.get(0)));
+        w.chooseApp(app);
         if (step >= 2) {
             w.next();
             Assert.assertTrue(w.waitForStep("User Mapping & Ordering"), "Should reach 'User Mapping & Ordering'.");

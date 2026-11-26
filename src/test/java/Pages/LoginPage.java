@@ -30,14 +30,48 @@ public class LoginPage extends BasePage {
         super(driver);
     }
 
+    /** The server's error toast when it refuses the login ("Unable To Login / Invalid Credentials"). */
+    private final By loginRejected = By.xpath("//*[contains(text(),'Unable To Login') or contains(text(),'Unable to login')"
+            + " or contains(text(),'Invalid Credentials') or contains(text(),'Invalid credentials')]");
+
+    /** Set once UAT refuses an account's login: later tests fail at once with the same reason. */
+    private static volatile String rejectedUser;
+    private static volatile String rejectedMessage;
+
     /** Full happy-path field entry + submit (used by every module's BaseTest to reach the app). */
     public void login(String user, String pass) {
+        if (user != null && user.equals(rejectedUser)) {
+            throw new IllegalStateException(rejectedMessage);
+        }
         type(email, user);
         type(password, pass);
         click(loginBtn);
+
+        // Wait for one of three outcomes: logged in (form gone), 2-step screen, or the server's error.
+        String outcome;
         try {
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(loginBtn));
-        } catch (Exception ignored) {
+            outcome = new org.openqa.selenium.support.ui.WebDriverWait(driver, Duration.ofSeconds(20)).until(d -> {
+                if (d.findElements(loginRejected).stream().anyMatch(WebElement::isDisplayed)) {
+                    return "rejected";
+                }
+                // The e-mail field, not the button: the app reuses the button id "dc_sign_in_submit" elsewhere.
+                if (d.findElements(email).stream().noneMatch(WebElement::isDisplayed)) {
+                    return "left-login-form";
+                }
+                return null;
+            });
+        } catch (Exception timeout) {
+            outcome = "no-response";
+        }
+        if ("rejected".equals(outcome)) {
+            recordStep("Login rejected by the server");
+            rejectedUser = user;
+            rejectedMessage = "LOGIN REJECTED: UAT answered \"Unable To Login - Invalid Credentials\" for '" + user
+                    + "'. The password in config.properties no longer works for this account, or the account is"
+                    + " inactive. This is an account problem, not a test failure; nothing after login was tested."
+                    + " Fix the account (or update config.properties) and run again.";
+            System.out.println("[AUTH] " + rejectedMessage);
+            throw new IllegalStateException(rejectedMessage);
         }
         try {
             new org.openqa.selenium.support.ui.WebDriverWait(driver, Duration.ofSeconds(5))

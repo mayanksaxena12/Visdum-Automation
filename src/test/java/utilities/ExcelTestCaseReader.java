@@ -105,6 +105,15 @@ public final class ExcelTestCaseReader {
         return false;
     }
 
+    /**
+     * Optional {@code -Dexcel.ids=ID1,ID2,...}: run only these Test Case IDs (case-insensitive), e.g. to
+     * re-run just the rows that failed last time. Empty = every row.
+     */
+    private static final java.util.Set<String> ID_FILTER = java.util.Arrays.stream(
+                    System.getProperty("excel.ids", "").split("[,;\\s]+"))
+            .map(s -> s.trim().toUpperCase()).filter(s -> !s.isEmpty())
+            .collect(java.util.stream.Collectors.toSet());
+
     public static List<TestCaseRow> readAll(String path) {
         List<TestCaseRow> rows = new ArrayList<>();
         DataFormatter fmt = new DataFormatter();
@@ -133,6 +142,9 @@ public final class ExcelTestCaseReader {
                     String tcId = cellVal(fmt, row, tcCol);
                     if (tcId.isEmpty() || tcId.equalsIgnoreCase("Test Case ID")) {
                         continue; // divider / metadata / blank row
+                    }
+                    if (!ID_FILTER.isEmpty() && !ID_FILTER.contains(tcId.trim().toUpperCase())) {
+                        continue; // -Dexcel.ids=SS1-007,KM-013 runs only those rows
                     }
                     String scenarioText = colVal(fmt, row, cols, "Test Scenario");
                     String description = colVal(fmt, row, cols, "Test Case Description");

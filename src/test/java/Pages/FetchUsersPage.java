@@ -60,32 +60,101 @@ public class FetchUsersPage extends BasePage {
         return out;
     }
 
+    /**
+     * Legend in FetchUsersList.tsx: {@code <span>[<span class='bullet bullet-dot bg-success'/>] New data</span>},
+     * i.e. the label is a text node of the span that also holds the coloured dot.
+     */
     public boolean isLegendVisible(String label, String bulletClass) {
-        return anyVisible(By.xpath("//span[contains(@class,'bullet-dot') and contains(@class," + xpathLiteral(bulletClass) + ")]"
-                + "/following-sibling::*[1][normalize-space()=" + xpathLiteral(label) + "] | //*[normalize-space()=" + xpathLiteral(label) + "]"
-                + "[preceding-sibling::span[contains(@class,'bullet-dot') and contains(@class," + xpathLiteral(bulletClass) + ")]]"));
+        String dot = "span[contains(@class,'bullet-dot') and contains(@class," + xpathLiteral(bulletClass) + ")]";
+        return anyVisible(By.xpath("//span[normalize-space()=" + xpathLiteral(label) + "][" + dot + "]"
+                + " | //" + dot + "/following-sibling::*[1][normalize-space()=" + xpathLiteral(label) + "]"));
     }
 
     public int rowsWithIndicator(String bulletClass) {
+        waitForRows();
         return driver.findElements(By.cssSelector(".ag-row span.bullet-dot." + bulletClass)).size();
     }
 
+    /** Waits (up to 20s) for the fetched rows or the "no rows" overlay: users are loaded from the source after the page opens. */
+    private void waitForRows() {
+        try {
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(20)).until(d ->
+                    !d.findElements(By.cssSelector(".ag-center-cols-container .ag-row, .ag-overlay-no-rows-wrapper, .ag-overlay-no-rows-center")).isEmpty());
+        } catch (org.openqa.selenium.TimeoutException ignored) {
+        }
+    }
+
     public int rowCount() {
+        waitForRows();
         return (int) driver.findElements(By.cssSelector(".ag-center-cols-container .ag-row")).stream().filter(e -> e.isDisplayed()).count();
+    }
+
+    /** Text of each displayed row, joined across the pinned/center containers, keyed by row-index. */
+    private java.util.Map<String, String> rowTexts() {
+        java.util.Map<String, StringBuilder> byRow = new java.util.LinkedHashMap<>();
+        for (org.openqa.selenium.WebElement r : driver.findElements(By.cssSelector(".ag-row[row-index]"))) {
+            byRow.computeIfAbsent(r.getAttribute("row-index"), k -> new StringBuilder()).append(' ').append(r.getText());
+        }
+        java.util.Map<String, String> out = new java.util.LinkedHashMap<>();
+        byRow.forEach((k, v) -> out.put(k, v.toString().replaceAll("\\s+", " ").trim()));
+        return out;
+    }
+
+    /** First fetched user's e-mail (a cell containing '@'), or "" when there are no rows. */
+    public String firstRowEmail() {
+        waitForRows();
+        for (String text : rowTexts().values()) {
+            for (String word : text.split(" ")) {
+                if (word.contains("@")) {
+                    return word;
+                }
+            }
+        }
+        return "";
+    }
+
+    /** Types into the search box and returns true once every row shown contains {@code term} (up to 15s). */
+    public boolean searchAndCheckRows(String term) {
+        search(term);
+        String t = term.toLowerCase();
+        try {
+            return new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+                    .ignoring(org.openqa.selenium.StaleElementReferenceException.class)
+                    .until(d -> {
+                        java.util.Map<String, String> rows = rowTexts();
+                        return !rows.isEmpty() && rows.values().stream().allMatch(r -> r.toLowerCase().contains(t));
+                    });
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
+        }
     }
 
     public int selectedRowCount() {
         return (int) driver.findElements(By.cssSelector(".ag-center-cols-container .ag-row.ag-row-selected")).stream().filter(e -> e.isDisplayed()).count();
     }
 
+    // AG Grid's <input class='ag-checkbox-input'> is transparent (opacity 0), so Selenium treats it as
+    // hidden; the visible, clickable part is its wrapper.
     public void tickFirstRow() {
-        firstVisible(By.cssSelector(".ag-pinned-left-cols-container .ag-row[row-index='0'] .ag-checkbox-input, .ag-row[row-index='0'] .ag-checkbox-input")).click();
+        waitForRows();
+        clickCheckbox(By.cssSelector(".ag-row[row-index='0'] .ag-selection-checkbox .ag-checkbox-input-wrapper,"
+                + " .ag-row[row-index='0'] .ag-checkbox-input-wrapper"));
         recordStep("Ticked first row");
     }
 
     public void tickHeaderCheckbox() {
-        firstVisible(By.cssSelector(".ag-header .ag-header-select-all .ag-checkbox-input, .ag-header-select-all input")).click();
+        waitForRows();
+        clickCheckbox(By.cssSelector(".ag-header .ag-header-select-all .ag-checkbox-input-wrapper, .ag-header-select-all"));
         recordStep("Ticked header checkbox");
+    }
+
+    private void clickCheckbox(By wrapper) {
+        org.openqa.selenium.WebElement box = firstVisible(wrapper);
+        try {
+            box.click();
+        } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("arguments[0].click();", box);
+        }
     }
 
     public boolean isAddUsersEnabled() {

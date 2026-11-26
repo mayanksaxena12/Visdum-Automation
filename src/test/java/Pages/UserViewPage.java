@@ -120,6 +120,17 @@ public class UserViewPage extends BasePage {
         return anyVisible(By.xpath("//a[normalize-space()='View Manager History']"));
     }
 
+    /** Like {@link #hasManagerHistoryLink()} but gives up after {@code seconds} (for probing several users). */
+    public boolean hasManagerHistoryLink(int seconds) {
+        try {
+            return new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(seconds)).until(d ->
+                    d.findElements(By.xpath("//a[normalize-space()='View Manager History']")).stream()
+                            .anyMatch(org.openqa.selenium.WebElement::isDisplayed));
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
+        }
+    }
+
     /** Manager History entries in display order: {timestamp, managerName}. */
     public java.util.List<String[]> managerHistoryEntries() {
         firstVisible(By.xpath("//h4[normalize-space()='Manager History']"));

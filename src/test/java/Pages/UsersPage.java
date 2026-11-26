@@ -34,7 +34,7 @@ public class UsersPage extends AgGridListPage {
         for (int attempt = 1; attempt <= 2; attempt++) {
             click(addNewUser);
             try {
-                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(8))
+                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
                         .until(ExpectedConditions.visibilityOfElementLocated(nameInput));
                 return;
             } catch (org.openqa.selenium.TimeoutException notOpenYet) {
@@ -136,14 +136,45 @@ public class UsersPage extends AgGridListPage {
     // ---- helpers for UL-009 / UL-011 ----
     /** Number of rendered rows that have their three-dot (kebab) action button. */
     public int rowsWithKebab() {
-        int count = 0;
+        // The Action column's menus render a moment after the rows (permissions load separately).
+        try {
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
+                    .ignoring(org.openqa.selenium.StaleElementReferenceException.class)
+                    .until(d -> countRowsWithKebab() >= renderedRowCount());
+        } catch (org.openqa.selenium.TimeoutException ignored) {
+        }
+        return countRowsWithKebab();
+    }
+
+    private int countRowsWithKebab() {
+        // A row is split across the pinned-left / center / pinned-right containers, so count each
+        // row-index once.
+        java.util.Set<String> withKebab = new java.util.HashSet<>();
         for (org.openqa.selenium.WebElement row : driver.findElements(By.cssSelector(".ag-row[row-index]"))) {
             String idx = row.getAttribute("row-index");
-            if (!driver.findElements(By.id("userAction" + idx)).isEmpty()) {
-                count++;
+            if (!withKebab.contains(idx) && !driver.findElements(By.id("userAction" + idx)).isEmpty()) {
+                withKebab.add(idx);
             }
         }
-        return count;
+        return withKebab.size();
+    }
+
+    /** Indexes (ascending) of the rendered rows whose {@code colId} cell has a real value (not blank, "NA" or "-"). */
+    public java.util.List<Integer> rowIndexesWithValue(String colId) {
+        scrollColumnIntoView(colId);
+        java.util.TreeSet<Integer> out = new java.util.TreeSet<>();
+        for (org.openqa.selenium.WebElement row : driver.findElements(By.cssSelector(".ag-row[row-index]"))) {
+            try {
+                for (org.openqa.selenium.WebElement cell : row.findElements(By.cssSelector("[col-id='" + colId + "']"))) {
+                    String v = cell.getText().trim();
+                    if (!v.isEmpty() && !v.equalsIgnoreCase("NA") && !v.equals("-")) {
+                        out.add(Integer.parseInt(row.getAttribute("row-index")));
+                    }
+                }
+            } catch (org.openqa.selenium.StaleElementReferenceException | NumberFormatException ignored) {
+            }
+        }
+        return new java.util.ArrayList<>(out);
     }
 
     /** Scrolls the grid horizontally to an off-screen column and reports whether its header shows. */

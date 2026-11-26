@@ -66,6 +66,17 @@ public class DeactivateUserModal extends BasePage {
         return firstVisible(lastWorkingDay).getAttribute("value");
     }
 
+    /** Like {@link #isPayoutQuestionVisible()} but gives up after {@code seconds} (for probing several users). */
+    public boolean hasPayoutQuestion(int seconds) {
+        try {
+            return new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(seconds)).until(d ->
+                    d.findElements(By.xpath("//label[contains(normalize-space(),'Do you want payouts to be processed')]"))
+                            .stream().anyMatch(org.openqa.selenium.WebElement::isDisplayed));
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
+        }
+    }
+
     public boolean isPayoutQuestionVisible() {
         return anyVisible(By.xpath("//label[contains(normalize-space(),'Do you want payouts to be processed')]"));
     }

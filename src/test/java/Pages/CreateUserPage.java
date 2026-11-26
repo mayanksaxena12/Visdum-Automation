@@ -100,6 +100,21 @@ public class CreateUserPage extends BasePage {
         return wait.until(ExpectedConditions.presenceOfElementLocated(By.name(inputName))).getAttribute("value");
     }
 
+    /**
+     * Value of an Edit User field once the drawer has filled it in (up to 10s; the user's data arrives
+     * from the server after the drawer opens). Empty if it never gets a value.
+     */
+    public String prefilledValue(String inputName) {
+        try {
+            return new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10)).until(d -> {
+                String v = d.findElement(By.name(inputName)).getAttribute("value");
+                return v == null || v.isBlank() ? null : v;
+            });
+        } catch (Exception e) {
+            return inputValue(inputName);
+        }
+    }
+
     public boolean isInputEnabled(String inputName) {
         return wait.until(ExpectedConditions.presenceOfElementLocated(By.name(inputName))).isEnabled();
     }
@@ -131,7 +146,7 @@ public class CreateUserPage extends BasePage {
     public java.util.List<String> dropdownOptions(String placeholderOrValue) {
         openReactSelect(placeholderOrValue);
         java.util.List<String> options = wait.until(d -> {
-            java.util.List<WebElement> els = d.findElements(By.cssSelector(".select__menu .select__option"));
+            java.util.List<WebElement> els = d.findElements(REACT_OPTION);
             return els.isEmpty() ? null : els;
         }).stream().map(e -> e.getText().trim()).toList();
         recordStep("Opened dropdown '" + placeholderOrValue + "' (" + options.size() + " options)");
@@ -144,7 +159,7 @@ public class CreateUserPage extends BasePage {
         // Options such as Manager are fetched from the server after the dropdown opens; pressing
         // Enter before they arrive selects nothing. Wait for a real option and click it.
         openReactSelect(placeholder);
-        WebElement first = firstClickable(By.cssSelector(".select__menu .select__option"));
+        WebElement first = firstClickable(REACT_OPTION);
         String picked = first.getText();
         first.click();
         recordStep("Selected first option '" + picked + "' in '" + placeholder + "'");
@@ -156,6 +171,17 @@ public class CreateUserPage extends BasePage {
 
     public String joiningDateValue() {
         return wait.until(ExpectedConditions.presenceOfElementLocated(joiningDate)).getAttribute("value");
+    }
+
+    /** True when the manager "Effective Date" field is shown with its required marker (label class 'required'). */
+    public boolean isEffectiveDateRequired() {
+        return anyVisible(By.xpath("//label[normalize-space()='Effective Date' and contains(concat(' ',@class,' '),' required ')]"));
+    }
+
+    /** Clears the auto-filled manager Effective Date with its 'x' button. */
+    public void clearManagerEffectiveDate() {
+        click(By.xpath("//*[@aria-label='Clear effective date']"));
+        recordStep("Cleared the manager Effective Date");
     }
 
     public String managerEffectiveDateValue() {

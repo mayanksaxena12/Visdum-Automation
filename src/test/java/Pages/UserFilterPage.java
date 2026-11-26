@@ -62,9 +62,14 @@ public class UserFilterPage extends BasePage {
     }
 
     // ---- helpers for CF-008 ----
-    /** Visible delete (trash) icons, one per filter criterion. */
+    /**
+     * Number of criterion rows in the Custom Filter drawer (CustomFilter.tsx: one bordered row per filter,
+     * each with a column react-select, default css-*-control classes). Not the trash icons: those only render while there are 2+ rows.
+     */
     public int criteriaCount() {
-        return (int) driver.findElements(By.cssSelector("i.fa-trash-can")).stream().filter(e -> e.isDisplayed()).count();
+        return (int) driver.findElements(By.xpath("//div[contains(@class,'flex-wrap') and contains(@class,'border')"
+                + " and contains(@class,'p-3') and contains(@class,'rounded')][.//*[contains(@class,'-control')]]"))
+                .stream().filter(e -> e.isDisplayed()).count();
     }
 
     /** Adds another criterion with the "+ AND" button. */

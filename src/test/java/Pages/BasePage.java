@@ -35,12 +35,15 @@ public abstract class BasePage {
                 }
                 System.out.println("  [STEP] element was re-rendered, retrying click (" + attempt + ")");
             }
-        }
+        }
     }
 
     protected void type(By locator, String value) {
-        System.out.println("  [STEP] ⌨️ Type '" + value + "' -> " + locator);
         WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        // Never print a password to the console / Maven log.
+        boolean secret = "password".equalsIgnoreCase(element.getAttribute("type"))
+                || locator.toString().toLowerCase().contains("password");
+        System.out.println("  [STEP] ⌨️ Type '" + (secret ? "********" : value) + "' -> " + locator);
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
         element.clear();
         element.sendKeys(value);
@@ -137,7 +140,7 @@ public abstract class BasePage {
         System.out.println("  [STEP] 🔽 Select Option '" + option + "' for Dropdown -> '" + placeholder + "'");
         WebElement input = openReactSelect(placeholder);
         input.sendKeys(option);
-        input.sendKeys(Keys.ENTER);
+        input.sendKeys(Keys.ENTER);
     }
 
     /**
@@ -148,8 +151,15 @@ public abstract class BasePage {
     protected void selectFirstReactOption(String placeholder) {
         openReactSelect(placeholder);
         // Options may be fetched after opening; wait for a real one before choosing it.
-        firstClickable(By.cssSelector(".select__menu .select__option")).click();
+        firstClickable(REACT_OPTION).click();
     }
+
+    /**
+     * An option in an open react-select menu. Plain options carry {@code select__option}; custom
+     * option components (e.g. the Manager picker's name + email UserSelectOption) drop that class but
+     * keep react-select's {@code react-select-N-option-M} id, so match either.
+     */
+    protected static final By REACT_OPTION = By.cssSelector(".select__menu .select__option, .select__menu [id*='-option-']");
 
     protected String xpathLiteral(String value) {
         if (!value.contains("'")) {
@@ -176,36 +186,42 @@ public abstract class BasePage {
      * end of the scroll range (e.g. for pinned columns like "Status"/"Actions" that never scroll).
      */
     protected void scrollColumnIntoView(String colId) {
-        By columnLocator = By.xpath("//div[@col-id='" + colId + "']");
-        if (!driver.findElements(columnLocator).isEmpty()) {
+        // The header can already be in the DOM (AG Grid renders a buffer of columns) while it is
+        // still clipped off-screen, so wait for it to be *displayed*, not merely present.
+        By header = By.xpath("//div[@role='columnheader' and @col-id='" + colId + "']");
+        java.util.function.BooleanSupplier shown = () -> {
+            try {
+                return driver.findElements(header).stream().anyMatch(WebElement::isDisplayed);
+            } catch (org.openqa.selenium.StaleElementReferenceException rerendered) {
+                return false;
+            }
+        };
+        if (shown.getAsBoolean()) {
             return;
         }
 
-        List<WebElement> scrollContainers = driver.findElements(By.cssSelector(".ag-center-cols-viewport"));
-        if (scrollContainers.isEmpty()) {
+        // Scroll both the render viewport and the scrollbar track: depending on the AG Grid
+        // version one of them drives the other (and the header) through its scroll event.
+        List<WebElement> scrollers = driver.findElements(By.cssSelector(".ag-center-cols-viewport, .ag-body-horizontal-scroll-viewport"));
+        if (scrollers.isEmpty()) {
             return; // Grid has no horizontal scrollbar (every column already fits on screen).
         }
-
-        WebElement viewport = scrollContainers.get(0);
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        long scrollWidth = ((Number) js.executeScript("return arguments[0].scrollWidth;", viewport)).longValue();
-        long step = 250;
-
-        for (long position = 0; position <= scrollWidth; position += step) {
-            js.executeScript("arguments[0].scrollLeft = arguments[1];", viewport, position);
-            if (!driver.findElements(columnLocator).isEmpty()) {
-                return;
-            }
-            try {
-                Thread.sleep(150);
-            } catch (InterruptedException interrupted) {
-                Thread.currentThread().interrupt();
-                return;
-            }
+        long scrollWidth = 0;
+        for (WebElement s : scrollers) {
+            scrollWidth = Math.max(scrollWidth, ((Number) js.executeScript("return arguments[0].scrollWidth;", s)).longValue());
         }
 
-        // Last resort: jump straight to the far right edge in case the column sits in the final
-        // buffered range that a fixed-size step could have stepped over.
-        js.executeScript("arguments[0].scrollLeft = arguments[0].scrollWidth;", viewport);
+        for (long position = 0; position <= scrollWidth + 250; position += 250) {
+            for (WebElement s : scrollers) {
+                js.executeScript("arguments[0].scrollLeft = arguments[1];", s, position); // fires 'scroll' itself
+            }
+            try {
+                new WebDriverWait(driver, Duration.ofMillis(400)).until(d -> shown.getAsBoolean());
+                return;
+            } catch (org.openqa.selenium.TimeoutException notYet) {
+                // keep scrolling right
+            }
+        }
     }
 }

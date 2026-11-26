@@ -98,8 +98,18 @@ public class ChangePasswordModal extends BasePage {
         recordStep("Toggled 'Send alert email'");
     }
 
+    /**
+     * True if the popup is still open after up to 5s. The modal fades out, so checking straight after
+     * Cancel/Update still finds the fields for a moment; wait for them to go before deciding.
+     */
     public boolean isModalStillOpen() {
-        return anyVisible(newPassword);
+        try {
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(5))
+                    .until(ExpectedConditions.invisibilityOfElementLocated(newPassword));
+            return false;
+        } catch (org.openqa.selenium.TimeoutException stillShown) {
+            return true;
+        }
     }
 
 }

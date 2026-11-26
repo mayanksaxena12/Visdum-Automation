@@ -87,10 +87,30 @@ public class ExcelDrivenTest implements ITest {
 
         WebDriver driver = DriverFactory.getDriver();
         driver.get(ConfigReader.get("url"));
+        loginFor(row, driver);
 
-        // If organization module: login using Super Admin credentials.
-        // If login module: runs directly on the login page.
-        // Other business modules: login using standard tenant admin credentials.
+        try {
+            action.run(driver, row);
+        } catch (Throwable first) {
+            // UAT keeps one session per account: a login elsewhere with the same account (another run,
+            // or someone opening UAT in a browser) logs this browser out mid-test, and the row fails on
+            // the login page. Such a row is retried once; any other failure is reported as it is.
+            if (first instanceof SkipException || row.getModule().equalsIgnoreCase("Login") || !isOnLoginPage(driver)) {
+                throw first;
+            }
+            System.out.println("[AUTH] " + row.getTestCaseId() + ": logged out mid-test (another login with the same"
+                    + " account ended this session; UAT allows one session per account). Logging in again and"
+                    + " retrying this row once. First error: " + first.getMessage());
+            driver.get(ConfigReader.get("url"));
+            loginFor(row, driver);
+            action.run(driver, row);
+        }
+    }
+
+    // If organization module: login using Super Admin credentials.
+    // If login module: runs directly on the login page.
+    // Other business modules: login using standard tenant admin credentials.
+    private static void loginFor(TestCaseRow row, WebDriver driver) {
         if (row.getModule().equalsIgnoreCase("Organization")) {
             String superUser = ConfigReader.get("super_admin.username", ConfigReader.get("username"));
             String superPass = ConfigReader.get("super_admin.password", ConfigReader.get("password"));
@@ -98,8 +118,25 @@ public class ExcelDrivenTest implements ITest {
         } else if (!row.getModule().equalsIgnoreCase("Login")) {
             new LoginPage(driver).login(ConfigReader.get("username"), ConfigReader.get("password"));
         }
+    }
 
-        action.run(driver, row);
+    /**
+     * True when the browser is back on the sign-in page (the session was ended): the /login route with
+     * its e-mail and password fields. Not the button id "dc_sign_in_submit": the app reuses it for other
+     * buttons (e.g. the Create User drawer's Submit).
+     */
+    private static boolean isOnLoginPage(WebDriver driver) {
+        try {
+            String path = new java.net.URI(driver.getCurrentUrl()).getPath();
+            // A 401 sends the app to /auth (services/_apiService.ts); the sign-in form is /auth or /auth/login.
+            boolean loginRoute = path == null || path.isEmpty() || path.equals("/") || path.startsWith("/auth")
+                    || path.endsWith("/login");
+            return loginRoute
+                    && driver.findElements(org.openqa.selenium.By.name("email")).stream().anyMatch(org.openqa.selenium.WebElement::isDisplayed)
+                    && driver.findElements(org.openqa.selenium.By.name("password")).stream().anyMatch(org.openqa.selenium.WebElement::isDisplayed);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @AfterMethod(alwaysRun = true)

@@ -86,13 +86,15 @@ public abstract class AgGridListPage extends BasePage {
     }
 
     /**
-     * Waits until the grid has stopped redrawing: no loading overlay, and the rendered rows are the
-     * same on two polls in a row. Bounded (max ~10s); never fails the test by itself.
+     * Waits until the grid has stopped redrawing: no loading overlay, and the rendered rows unchanged
+     * for ~1.2s. An empty grid must stay empty for 4s before it counts: the grid shows its "no rows"
+     * overlay for a moment before the first data arrives. Bounded (max 20s); never fails the test.
      */
     public void waitForGridToSettle() {
         final String[] last = {null};
+        final long[] since = {0};
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(10))
+            new WebDriverWait(driver, Duration.ofSeconds(20))
                     .pollingEvery(Duration.ofMillis(400))
                     .ignoring(org.openqa.selenium.StaleElementReferenceException.class)
                     .until(d -> {
@@ -107,12 +109,16 @@ public abstract class AgGridListPage extends BasePage {
                             return false;
                         }
                         String signature = rows.size() + "|" + (rows.isEmpty() ? "" : rows.get(0).getText());
-                        boolean stable = signature.equals(last[0]);
-                        last[0] = signature;
-                        return stable;
+                        long now = System.currentTimeMillis();
+                        if (!signature.equals(last[0])) {
+                            last[0] = signature;
+                            since[0] = now;
+                            return false;
+                        }
+                        return now - since[0] >= (rows.isEmpty() ? 4000 : 1200);
                     });
         } catch (TimeoutException ignored) {
-            System.out.println("  [STEP] grid still changing after 10s, continuing");
+            System.out.println("  [STEP] grid still loading or changing after 20s, continuing");
         }
     }
 
@@ -183,15 +189,24 @@ public abstract class AgGridListPage extends BasePage {
 
     /** Returns the text of the first rendered row for a given column id (e.g. "name"). */
     public String getFirstRowValue(String colId) {
+        return getRowValue(0, colId);
+    }
+
+    /** Text of row {@code rowIndex} (0-based) in column {@code colId}; "" when there is no such row. */
+    public String getRowValue(int rowIndex, String colId) {
+        if (rowIndex > 0 && driver.findElements(By.xpath("//div[@role='row' and @row-index='" + rowIndex + "']")).isEmpty()) {
+            return "";
+        }
         scrollColumnIntoView(colId);
+        String row = "//div[@role='row' and @row-index='" + rowIndex + "']";
         By locator;
         if ("name".equalsIgnoreCase(colId)) {
-            locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='name']//div[contains(@class,'text-truncate')]//span");
+            locator = By.xpath(row + "//div[@col-id='name']//div[contains(@class,'text-truncate')]//span");
             if (driver.findElements(locator).isEmpty()) {
-                locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='name']");
+                locator = By.xpath(row + "//div[@col-id='name']");
             }
         } else {
-            locator = By.xpath("//div[@role='row' and @row-index='0']//div[@col-id='" + colId + "']");
+            locator = By.xpath(row + "//div[@col-id='" + colId + "']");
         }
         String value = text(locator).trim();
         if ("name".equalsIgnoreCase(colId)) {
